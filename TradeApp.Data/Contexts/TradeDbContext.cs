@@ -13,7 +13,7 @@ namespace TradeApp.Data.Contexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasDefaultSchema("dbo");
+            modelBuilder.HasDefaultSchema("trd");
         }
 
         public DbSet<User> User { get; set; }

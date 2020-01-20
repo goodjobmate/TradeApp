@@ -20,10 +20,10 @@ namespace TradeApp.Api.Controllers
         }
 
         // GET: api/BaseMeta/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        [HttpGet("{id}")]
+        public IActionResult Get(int id)
         {
-            return "value";
+            return Ok("value");
         }
 
         // POST: api/BaseMeta

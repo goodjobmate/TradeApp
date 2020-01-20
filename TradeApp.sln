@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradeApp.UI", "TradeApp.UI\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeApp.Api", "TradeApp.Api\TradeApp.Api.csproj", "{9FE17475-E957-4E56-9F77-6F3F3AE1A369}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeApp.Business", "TradeApp.Business\TradeApp.Business.csproj", "{9AC5FC66-81D4-4510-9D04-A4F0D1729769}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{9FE17475-E957-4E56-9F77-6F3F3AE1A369}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9FE17475-E957-4E56-9F77-6F3F3AE1A369}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9FE17475-E957-4E56-9F77-6F3F3AE1A369}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AC5FC66-81D4-4510-9D04-A4F0D1729769}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AC5FC66-81D4-4510-9D04-A4F0D1729769}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AC5FC66-81D4-4510-9D04-A4F0D1729769}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AC5FC66-81D4-4510-9D04-A4F0D1729769}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

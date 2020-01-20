@@ -12,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using TradeApp.Business.Services;
+using TradeApp.Business.Services.Interfaces;
 using TradeApp.Data.Contexts;
 
 namespace TradeApp.Api
@@ -35,6 +37,8 @@ namespace TradeApp.Api
 
             services.AddDbContext<BaseMetaDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("BaseMetaDbContext")));
+
+            services.AddScoped<IWidgetService, WidgetService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
