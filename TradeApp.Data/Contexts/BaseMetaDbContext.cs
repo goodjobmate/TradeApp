@@ -21,6 +21,7 @@ namespace TradeApp.Data.Contexts
         public DbSet<Branch> Branches { get; set; }
         public DbSet<CrossReference> CrossReferences { get; set; }
         public DbSet<GroupCrossReference> GroupCrossReferences { get; set; }
+        //TODO : will be removed.
         public DbQuery<ServerGroup> ServerGroups { get; set; }
     }
 }

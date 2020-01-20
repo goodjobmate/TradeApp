@@ -31,7 +31,7 @@ namespace TradeApp.UI.Controllers
             }
 
 
-            var server = await _context.ServerGroups.FromSql(
+            var server = await _context.ServerGroups.FromSqlInterpolated(
                 $@"select c.*, gc.group_name, s.name servername, r.name regulationname, b.name branchname, co.name companyname, c.id xid
                 from dbo.crossreferences c
                 join dbo.groupcrossreferences gc  on gc.xid = c.id
