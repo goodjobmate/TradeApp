@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TradeApp.Data.Contexts;
 using TradeApp.Data.Models.BaseMetaDbModels;
+using TradeApp.UI.Models;
 
 namespace TradeApp.UI.Controllers
 {
@@ -30,23 +31,30 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
+            var response = from cr in _context.CrossReferences
+                where cr.ServerId == id
+                join groupCrossReference in _context.GroupCrossReferences on cr.Id equals groupCrossReference
+                    .CrossReferenceId
+                join server in _context.Servers on cr.ServerId equals server.Id
+                join regulation in _context.Regulations on cr.RegulationId equals regulation.Id
+                join branch in _context.Branches on cr.BranchId equals branch.Id
+                join company in _context.Companies on cr.CompanyId equals company.Id
+                select new GroupCrossReferenceViewModel
+                {
+                    ServerName = server.Name,
+                    RegulationName = regulation.Name,
+                    BranchName = branch.Name,
+                    CompanyName = company.Name,
+                    GroupName = groupCrossReference.GroupName,
+                    ServerId = server.Id,
+                    RegulationId = regulation.Id,
+                    BranchId = branch.Id,
+                    CompanyId = company.Id,
+                    CrossReferenceId = cr.Id,
+                    GroupCrossReferenceId = groupCrossReference.Id
+                };
 
-            var server = await _context.ServerGroups.FromSqlInterpolated(
-                $@"select c.*, gc.group_name, s.name servername, r.name regulationname, b.name branchname, co.name companyname, c.id xid
-                from dbo.crossreferences c
-                join dbo.groupcrossreferences gc  on gc.xid = c.id
-                join dbo.regulations r on c.regulationid = r.id
-                join dbo.branches b on c.branchid = b.id
-                join dbo.servers s on c.serverid = s.id
-                join dbo.companies co on co.id = c.companyid
-                where serverid ={id}").ToListAsync();
-
-            if (server == null)
-            {
-                return NotFound();
-            }
-
-            return View(server);
+            return View(await response.ToListAsync());
         }
 
         // GET: Servers/Create

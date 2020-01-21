@@ -1,4 +1,4 @@
-﻿@model TradeApp.Data.Models.BaseMetaDbModels.GroupCrossReference
+﻿@model TradeApp.UI.Models.GroupCrossReferenceViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -12,17 +12,38 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="CrossReferenceId" class="control-label"></label>
-                <select asp-for="CrossReferenceId" class="form-control" asp-items="ViewBag.CrossReferenceId"></select>
-                <span asp-validation-for="CrossReferenceId" class="text-danger"></span>
-            </div>
+            <input type="hidden" asp-for="ServerId" />
+            <input type="hidden" asp-for="RegulationId" />
+            <input type="hidden" asp-for="BranchId" />
+            <input type="hidden" asp-for="CompanyId" />
+            <input type="hidden" asp-for="GroupCrossReferenceId" />
+            <input type="hidden" asp-for="CrossReferenceId" />
             <div class="form-group">
                 <label asp-for="GroupName" class="control-label"></label>
                 <input asp-for="GroupName" class="form-control" />
                 <span asp-validation-for="GroupName" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label asp-for="ServerName" class="control-label"></label>
+                <select asp-for="ServerId" class="form-control" asp-items="ViewBag.ServerName"></select>
+                <span asp-validation-for="ServerId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RegulationName" class="control-label"></label>
+                <select asp-for="RegulationId" class="form-control" asp-items="ViewBag.RegulationName"></select>
+                <span asp-validation-for="RegulationId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BranchName" class="control-label"></label>
+                <select asp-for="BranchId" class="form-control" asp-items="ViewBag.BranchName"></select>
+                <span asp-validation-for="BranchId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompanyName" class="control-label"></label>
+                <select asp-for="CompanyId" class="form-control" asp-items="ViewBag.CompanyName"></select>
+                <span asp-validation-for="CompanyId" class="text-danger"></span>
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>

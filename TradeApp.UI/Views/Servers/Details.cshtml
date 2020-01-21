@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TradeApp.Data.Models.BaseMetaDbModels.ServerGroup>
+﻿@model IEnumerable<TradeApp.UI.Models.GroupCrossReferenceViewModel>
 
 @{
     ViewData["Title"] = "Details";
@@ -10,19 +10,19 @@
     <thead>
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.group_name)
+            @Html.DisplayNameFor(model => model.GroupName)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.servername)
+            @Html.DisplayNameFor(model => model.ServerName)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.branchname)
+            @Html.DisplayNameFor(model => model.BranchName)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.regulationname)
+            @Html.DisplayNameFor(model => model.RegulationName)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.companyname)
+            @Html.DisplayNameFor(model => model.CompanyName)
         </th>
 
         <th></th>
@@ -33,22 +33,22 @@
     {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.group_name)
+                @Html.DisplayFor(modelItem => item.GroupName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.servername)
+                @Html.DisplayFor(modelItem => item.ServerName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.branchname)
+                @Html.DisplayFor(modelItem => item.BranchName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.regulationname)
+                @Html.DisplayFor(modelItem => item.RegulationName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.companyname)
+                @Html.DisplayFor(modelItem => item.CompanyName)
             </td>
             <td>
-                @*<a asp-action="EditGroup" asp-route-id="@item.group_name">Edit</a> |*@
+                <a asp-controller="GroupCrossReferences" asp-action="Edit" asp-route-id="@item.GroupCrossReferenceId">Edit</a>
             </td>
         </tr>
     }
