@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using TradeApp.Business.Services.Interfaces;
 using TradeApp.Business.WidgetModels;
@@ -14,6 +10,7 @@ namespace TradeApp.Api.Controllers
     public class WidgetController : ControllerBase
     {
         private readonly IWidgetService _widgetService;
+
         public WidgetController(IWidgetService widgetService)
         {
             _widgetService = widgetService;
@@ -23,7 +20,7 @@ namespace TradeApp.Api.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] { "value1", "value2" };
+            return new[] {"value1", "value2"};
         }
 
         // GET: api/Widget/5

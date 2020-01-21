@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 
 namespace TradeApp.Api.Controllers
@@ -16,7 +12,7 @@ namespace TradeApp.Api.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] {"value1", "value2"};
+            return new[] {"value1", "value2"};
         }
 
         // GET: api/BaseMeta/5
