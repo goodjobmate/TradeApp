@@ -9,6 +9,8 @@ namespace TradeApp.Api.Controllers
     [ApiController]
     public class WidgetController : ControllerBase
     {
+        private const int UserId = 0;
+
         private readonly IWidgetService _widgetService;
 
         public WidgetController(IWidgetService widgetService)
@@ -37,22 +39,47 @@ namespace TradeApp.Api.Controllers
             return Ok(widget);
         }
 
+        [HttpGet("LookUp")]
+        public ActionResult<List<ResultDto>> GetLookUp()
+        {
+            return Ok(_widgetService.GetLookUp());
+        }
+
+        [HttpGet("Menu/{userId:int}")]
+        public ActionResult<List<ResultDto>> GetMenu(int userId)
+        {
+            return Ok(_widgetService.GetMenu(userId));
+        }
+
         // POST: api/Widget
         [HttpPost]
-        public void Post([FromBody] string value)
+        public ActionResult<int> Post([FromBody] UserDashboardWidgetDto userDashboardWidget)
         {
+            //TODO : Validations
+
+            return Ok(_widgetService.CreateUserDashboardWidget(UserId, userDashboardWidget));
         }
 
         // PUT: api/Widget/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
+            //TODO : post - put - patch ayrilmali
         }
 
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
+            var widget = _widgetService.GetWidget(id);
+
+            if (widget == null)
+            {
+                return NotFound();
+            }
+
+            _widgetService.DeleteWidget(widget.PageId);
+            return Ok();
         }
     }
 }
