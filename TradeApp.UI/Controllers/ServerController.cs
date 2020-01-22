@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,8 @@ namespace TradeApp.UI.Controllers
         // GET: Server
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Servers.ToListAsync());
+            var response = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
+            return View(response.Data);
         }
 
         // GET: Server/Details/5
@@ -30,14 +32,13 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var server = await _context.Servers
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (server == null)
+            var response = ApiConsumer.Get<Server>($"https://localhost:44305/api/server/{id}");
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(server);
+            return View(response.Data);
         }
 
         // GET: Server/Create
@@ -51,14 +52,15 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Region,Dns,IpAddress,MetaType,MetaVersion,Description")] Server server)
+        public async Task<IActionResult> Create([Bind("Id,Name,Region,Dns,IpAddress,MetaType,MetaVersion,Description")]
+            Server server)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(server);
-                await _context.SaveChangesAsync();
+                var response = ApiConsumer.Post<Server>(server, "https://localhost:44305/api/server");
                 return RedirectToAction(nameof(Index));
             }
+
             return View(server);
         }
 
@@ -70,12 +72,13 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var server = await _context.Servers.FindAsync(id);
-            if (server == null)
+            var response = ApiConsumer.Get<Server>($"https://localhost:44305/api/server/{id}");
+            if (response.Data == null)
             {
                 return NotFound();
             }
-            return View(server);
+
+            return View(response.Data);
         }
 
         // POST: Server/Edit/5
@@ -83,7 +86,9 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Region,Dns,IpAddress,MetaType,MetaVersion,Description")] Server server)
+        public async Task<IActionResult> Edit(int id,
+            [Bind("Id,Name,Region,Dns,IpAddress,MetaType,MetaVersion,Description")]
+            Server server)
         {
             if (id != server.Id)
             {
@@ -94,8 +99,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    _context.Update(server);
-                    await _context.SaveChangesAsync();
+                    var response = ApiConsumer.Put<Server>(server, $"https://localhost:44305/api/server/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -103,13 +107,13 @@ namespace TradeApp.UI.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(server);
         }
 
@@ -121,24 +125,22 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var server = await _context.Servers
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (server == null)
+            var response = ApiConsumer.Get<Server>($"https://localhost:44305/api/server/{id}");
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(server);
+            return View(response.Data);
         }
 
         // POST: Server/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var server = await _context.Servers.FindAsync(id);
-            _context.Servers.Remove(server);
-            await _context.SaveChangesAsync();
+            var response = ApiConsumer.Delete<Server>($"https://localhost:44305/api/server/{id}");
             return RedirectToAction(nameof(Index));
         }
 

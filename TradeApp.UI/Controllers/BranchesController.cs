@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,27 +18,28 @@ namespace TradeApp.UI.Controllers
         }
 
         // GET: Branches
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.Branches.ToListAsync());
+            var response = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
+
+            return View(response.Data);
         }
 
         // GET: Branches/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var branch = await _context.Branches
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (branch == null)
+            var response = ApiConsumer.Get<Branch>($"https://localhost:44305/api/branch/{id}");
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(branch);
+            return View(response.Data);
         }
 
         // GET: Branches/Create
@@ -51,31 +53,30 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Branch branch)
+        public IActionResult Create([Bind("Id,Name")] Branch branch)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(branch);
-                await _context.SaveChangesAsync();
+                var response = ApiConsumer.Post<Branch>(branch,$"https://localhost:44305/api/branch");
                 return RedirectToAction(nameof(Index));
             }
             return View(branch);
         }
 
         // GET: Branches/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var branch = await _context.Branches.FindAsync(id);
-            if (branch == null)
+            var response = ApiConsumer.Get<Branch>($"https://localhost:44305/api/branch/{id}");
+            if (response == null)
             {
                 return NotFound();
             }
-            return View(branch);
+            return View(response.Data);
         }
 
         // POST: Branches/Edit/5
@@ -83,7 +84,7 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Branch branch)
+        public IActionResult Edit(int id, [Bind("Id,Name")] Branch branch)
         {
             if (id != branch.Id)
             {
@@ -94,8 +95,8 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    _context.Update(branch);
-                    await _context.SaveChangesAsync();
+                    var response = ApiConsumer.Put<Branch>(branch, $"https://localhost:44305/api/branch/{id}");
+                    branch = response.Data;
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -114,31 +115,30 @@ namespace TradeApp.UI.Controllers
         }
 
         // GET: Branches/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var branch = await _context.Branches
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (branch == null)
+            var response = ApiConsumer.Get<Branch>($"https://localhost:44305/api/branch/{id}");
+
+
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(branch);
+            return View(response.Data);
         }
 
         // POST: Branches/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var branch = await _context.Branches.FindAsync(id);
-            _context.Branches.Remove(branch);
-            await _context.SaveChangesAsync();
+            var response = ApiConsumer.Delete<Branch>($"https://localhost:44305/api/branch/{id}");
             return RedirectToAction(nameof(Index));
         }
 

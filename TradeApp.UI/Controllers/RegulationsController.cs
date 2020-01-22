@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,8 @@ namespace TradeApp.UI.Controllers
         // GET: Regulations
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Regulations.ToListAsync());
+            var response = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
+            return View(response.Data);
         }
 
         // GET: Regulations/Details/5
@@ -30,14 +32,13 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var regulation = await _context.Regulations
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (regulation == null)
+            var response = ApiConsumer.Get<Regulation>($"https://localhost:44305/api/regulation/{id}");
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(regulation);
+            return View(response.Data);
         }
 
         // GET: Regulations/Create
@@ -55,10 +56,10 @@ namespace TradeApp.UI.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(regulation);
-                await _context.SaveChangesAsync();
+                var response = ApiConsumer.Post<Regulation>(regulation, "https://localhost:44305/api/regulation");
                 return RedirectToAction(nameof(Index));
             }
+
             return View(regulation);
         }
 
@@ -75,6 +76,7 @@ namespace TradeApp.UI.Controllers
             {
                 return NotFound();
             }
+
             return View(regulation);
         }
 
@@ -94,8 +96,8 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    _context.Update(regulation);
-                    await _context.SaveChangesAsync();
+                    var response =
+                        ApiConsumer.Put<List<Regulation>>(regulation, "https://localhost:44305/api/regulation");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -103,13 +105,13 @@ namespace TradeApp.UI.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(regulation);
         }
 
@@ -121,24 +123,22 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var regulation = await _context.Regulations
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (regulation == null)
+            var response = ApiConsumer.Get<Regulation>($"https://localhost:44305/api/regulation/{id}");
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(regulation);
+            return View(response.Data);
         }
 
         // POST: Regulations/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var regulation = await _context.Regulations.FindAsync(id);
-            _context.Regulations.Remove(regulation);
-            await _context.SaveChangesAsync();
+            var response = ApiConsumer.Delete<Regulation>($"https://localhost:44305/api/regulation/{id}");
             return RedirectToAction(nameof(Index));
         }
 

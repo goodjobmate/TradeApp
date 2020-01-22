@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,8 @@ namespace TradeApp.UI.Controllers
         // GET: Companies
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Companies.ToListAsync());
+            var response = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+            return View(response.Data);
         }
 
         // GET: Companies/Details/5
@@ -30,14 +32,14 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var company = await _context.Companies
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (company == null)
+            var response = ApiConsumer.Get<Company>($"https://localhost:44305/api/company/{id}");
+
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(company);
+            return View(response.Data);
         }
 
         // GET: Companies/Create
@@ -55,10 +57,11 @@ namespace TradeApp.UI.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(company);
-                await _context.SaveChangesAsync();
+                var response = ApiConsumer.Post<Company>(company, "https://localhost:44305/api/company");
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(company);
         }
 
@@ -70,12 +73,13 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var company = await _context.Companies.FindAsync(id);
-            if (company == null)
+            var response = ApiConsumer.Get<Company>($"https://localhost:44305/api/company/{id}");
+            if (response.Data == null)
             {
                 return NotFound();
             }
-            return View(company);
+
+            return View(response.Data);
         }
 
         // POST: Companies/Edit/5
@@ -94,8 +98,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    _context.Update(company);
-                    await _context.SaveChangesAsync();
+                    var response = ApiConsumer.Put<Company>(company, $"https://localhost:44305/api/company/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -103,13 +106,13 @@ namespace TradeApp.UI.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(company);
         }
 
@@ -121,24 +124,23 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var company = await _context.Companies
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (company == null)
+            var response = ApiConsumer.Get<Company>($"https://localhost:44305/api/company/{id}");
+
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(company);
+            return View(response.Data);
         }
 
         // POST: Companies/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var company = await _context.Companies.FindAsync(id);
-            _context.Companies.Remove(company);
-            await _context.SaveChangesAsync();
+            var response = ApiConsumer.Delete<Company>($"https://localhost:44305/api/company/{id}");
             return RedirectToAction(nameof(Index));
         }
 
