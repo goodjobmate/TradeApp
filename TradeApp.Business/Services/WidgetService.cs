@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using TradeApp.Business.Services.Interfaces;
 using TradeApp.Business.WidgetModels;
 using TradeApp.Data.Contexts;
@@ -155,6 +156,96 @@ namespace TradeApp.Business.Services
 
             _context.UserDashboard.Remove(existingUserDashboard);
             _context.SaveChanges();
+        }
+
+        public int CreateTag(AddTagRequest request)
+        {
+            var (tagFilterJson, tagLoginsJson) = GetTagAsJson(request);
+
+            var tag = new Tag
+            {
+                Key = tagFilterJson,
+                Name = request.Name,
+                Logins = tagLoginsJson
+            };
+
+            _context.Tags.Add(tag);
+            _context.SaveChanges();
+
+            return tag.Id;
+        }
+
+        public (bool exist, int id) CheckIfTagExists(AddTagRequest request)
+        {
+            var (jFilter, jLogins) = GetTagAsJson(request);
+
+            var existingTag =
+                _context.Tags.FirstOrDefault(f =>
+                    string.Equals(f.Key, jFilter) && string.Equals(f.Logins, jLogins));
+
+            return (existingTag == null, existingTag?.Id ?? 0);
+        }
+
+        public List<ResultDto> GetTagsWithServerAndRegulation(int? serverId, int? regulationId)
+        {
+            var allTags = _context.Tags.ToList();
+
+            var results = allTags.Select(x => new
+            {
+                Filter = JsonConvert.DeserializeObject<TagFilterDto>(x.Key),
+                x.Name,
+                x.Id
+            });
+
+            //Get tags that contains server and regulation or have none of them.
+            if (serverId.HasValue)
+            {
+                results = results.Where(x => x.Filter.ServerIds.Contains(serverId.Value));
+            }
+
+            if (regulationId.HasValue)
+            {
+                results = results.Where(x => x.Filter.RegulationId == regulationId.Value);
+            }
+
+            if (serverId == null && regulationId == null)
+            {
+                results = results.Where(x => x.Filter.RegulationId == null && !x.Filter.ServerIds.Any());
+            }
+
+            var response = new List<ResultDto>();
+
+            results.ToList().ForEach(x =>
+            {
+                var item = new ResultDto
+                {
+                    Key = x.Id,
+                    Value = x.Name
+                };
+
+                response.Add(item);
+            });
+
+            return response;
+        }
+
+        private (string tagFilterJson, string tagLoginsJson) GetTagAsJson(AddTagRequest request)
+        {
+            var filter = request.TagFilter;
+            var logins = request.TagFilter.Logins;
+
+            filter.Logins = new Dictionary<int, List<int>>();
+
+            var jFilter = JsonConvert.SerializeObject(filter);
+
+            var jLogins = string.Empty;
+
+            if (logins.Any())
+            {
+                jLogins = JsonConvert.SerializeObject(logins);
+            }
+
+            return (jFilter, jLogins);
         }
     }
 }

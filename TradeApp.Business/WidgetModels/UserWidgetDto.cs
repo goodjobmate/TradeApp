@@ -55,4 +55,25 @@ namespace TradeApp.Business.WidgetModels
         public string I { get; set; }
         public bool Moved { get; set; }
     }
+
+    public class AddTagRequest
+    {
+        public string Name { get; set; }
+        public TagFilterDto TagFilter { get; set; }
+    }
+
+    public class TagFilterDto
+    {
+        public TagFilterDto()
+        {
+            ServerIds = new List<int>();
+            Groups = new Dictionary<int, List<string>>();
+            Logins = new Dictionary<int, List<int>>();
+        }
+
+        public int? RegulationId { get; set; }
+        public List<int> ServerIds { get; set; }
+        public Dictionary<int, List<string>> Groups { get; set; }
+        public Dictionary<int, List<int>> Logins { get; set; }
+    }
 }
