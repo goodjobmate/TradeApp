@@ -14,6 +14,18 @@ namespace TradeApp.UI.Controllers
         {
             var response = ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference");
 
+            foreach (var crossReference in response.Data)
+            {
+                var detail =
+                    ApiConsumer.Get<CrossReference>(
+                        $"https://localhost:44305/api/CrossReference/{crossReference.Id}/detail");
+
+                crossReference.Server = detail.Data.Server;
+                crossReference.Regulation = detail.Data.Regulation;
+                crossReference.Branch = detail.Data.Branch;
+                crossReference.Company = detail.Data.Company;
+            }
+
             return View(response.Data);
         }
 
@@ -124,7 +136,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    ApiConsumer.Put<Branch>(crossReference, "https://localhost:44305/api/CrossReference");
+                    ApiConsumer.Put<Branch>(crossReference, $"https://localhost:44305/api/CrossReference/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TradeApp.Business.BaseMetaModels;
 using TradeApp.Data.Models.BaseMetaDbModels;
+using TradeApp.UI.Models;
 
 namespace TradeApp.UI.Controllers
 {
@@ -13,8 +14,24 @@ namespace TradeApp.UI.Controllers
         public IActionResult Index()
         {
             var response =
-                ApiConsumer.Get<List<GroupCrossReference>>("https://localhost:44305/api/Group");
-            return View(response.Data);
+                ApiConsumer.Get<List<GroupCrossReference>>("https://localhost:44305/api/Group/details");
+
+            var viewModel = new List<GroupCrossReferenceViewModel>();
+
+            foreach (var item in response.Data)
+            {
+                viewModel.Add(new GroupCrossReferenceViewModel
+                {
+                    Id = item.Id,
+                    Name = item.GroupName,
+                    CrossReferenceAlias = item.CrossReference.Server.Name + " - " +
+                                          item.CrossReference.Regulation.Name + " - " +
+                                          item.CrossReference.Branch.Name + " - " +
+                                          item.CrossReference.Company.Name
+                });
+            }
+
+            return View(viewModel);
         }
 
         // GET: GroupCrossReferences/Details/5
@@ -26,23 +43,46 @@ namespace TradeApp.UI.Controllers
             }
 
             var response =
-                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}");
+                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}/detail");
 
             if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(response.Data);
+            var viewModel = new GroupCrossReferenceViewModel
+            {
+                Id = response.Data.Id,
+                Name = response.Data.GroupName,
+                CrossReferenceAlias = response.Data.CrossReference.Server.Name + " - " +
+                                      response.Data.CrossReference.Regulation.Name + " - " +
+                                      response.Data.CrossReference.Branch.Name + " - " +
+                                      response.Data.CrossReference.Company.Name
+            };
+            return View(viewModel);
         }
 
         // GET: GroupCrossReferences/Create
         public IActionResult Create()
         {
-            var response =
-                ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference");
+            var crossReferenceResponse =
+                ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference/details");
 
-            ViewData["CrossReferenceId"] = new SelectList(response.Data, "Id", "Id");
+            var selectListDataSource = new List<GroupCrossReferenceViewModel>();
+
+            foreach (var item in crossReferenceResponse.Data)
+            {
+                selectListDataSource.Add(new GroupCrossReferenceViewModel
+                {
+                    CrossReferenceAlias = item.Server.Name + " - " +
+                                          item.Regulation.Name + " - " +
+                                          item.Branch.Name + " - " +
+                                          item.Company.Name,
+                    CrossReferenceId = item.Id
+                });
+            }
+
+            ViewData["CrossReference"] = new SelectList(selectListDataSource, "CrossReferenceId", "CrossReferenceAlias");
             return View();
         }
 
@@ -51,11 +91,17 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("Id,CrossReferenceId,GroupName")]
-            GroupCrossReference groupCrossReference)
+        public IActionResult Create([Bind("Name,CrossReferenceId")]
+            GroupCrossReferenceViewModel groupCrossReference)
         {
             if (ModelState.IsValid)
             {
+                var objectToCreate = new GroupCrossReference
+                {
+                    GroupName = groupCrossReference.Name,
+                    CrossReferenceId = groupCrossReference.CrossReferenceId
+                };
+
                 ApiConsumer.Post<CrossReference>(groupCrossReference,
                     "https://localhost:44305/api/Group");
 
@@ -63,10 +109,25 @@ namespace TradeApp.UI.Controllers
             }
 
             var crossReferenceResponse =
-                ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference");
+                ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference/details");
 
-            ViewData["CrossReferenceId"] =
-                new SelectList(crossReferenceResponse.Data, "Id", "Id", groupCrossReference.CrossReferenceId);
+            var selectListDataSource = new List<GroupCrossReferenceViewModel>();
+
+            foreach (var item in crossReferenceResponse.Data)
+            {
+                selectListDataSource.Add(new GroupCrossReferenceViewModel
+                {
+                    Id = item.Id,
+                    CrossReferenceAlias = item.Server.Name + " - " +
+                                          item.Regulation.Name + " - " +
+                                          item.Branch.Name + " - " +
+                                          item.Company.Name,
+                    CrossReferenceId = item.Id
+                });
+            }
+
+            ViewData["CrossReference"] = new SelectList(selectListDataSource, "CrossReferenceId", "CrossReferenceAlias",
+                groupCrossReference.CrossReferenceId);
 
             return View(groupCrossReference);
         }
@@ -80,26 +141,44 @@ namespace TradeApp.UI.Controllers
             }
 
             var gcr =
-                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}");
+                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}/detail");
 
-            var crossReference =
-                ApiConsumer.Get<CrossReference>(
-                    $"https://localhost:44305/api/CrossReference/{gcr.Data.CrossReferenceId}");
-            
-            var response = ApiConsumer.Get<List<GroupCrossReferenceResponse>>(
-                $"https://localhost:44305/api/group/server/{crossReference.Data.ServerId}");
+            var crossReference = gcr.Data.CrossReference;
 
-            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
-            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
-            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
-            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+            var serverId = crossReference.ServerId;
 
-            ViewData["ServerName"] = new SelectList(server.Data, "Id", "Name", crossReference.Data.ServerId);
-            ViewData["RegulationName"] = new SelectList(regulation.Data, "Id", "Name", crossReference.Data.RegulationId);
-            ViewData["BranchName"] = new SelectList(branch.Data, "Id", "Name", crossReference.Data.BranchId);
-            ViewData["CompanyName"] = new SelectList(company.Data, "Id", "Name", crossReference.Data.CompanyId);
+            var relatedCrossReferences =
+                ApiConsumer.Get<List<CrossReference>>($"https://localhost:44305/api/CrossReference/Server/{serverId}");
 
-            return View(response.Data);
+            var selectListDataSource = new List<GroupCrossReferenceViewModel>();
+
+            foreach (var item in relatedCrossReferences.Data)
+            {
+                selectListDataSource.Add(new GroupCrossReferenceViewModel
+                {
+                    Id = item.Id,
+                    CrossReferenceAlias = item.Server.Name + " - " +
+                                          item.Regulation.Name + " - " +
+                                          item.Branch.Name + " - " +
+                                          item.Company.Name,
+                    CrossReferenceId =  item.Id
+                });
+            }
+
+            ViewData["CrossReference"] = new SelectList(selectListDataSource, "CrossReferenceId", "CrossReferenceAlias",
+                crossReference.Id);
+
+            var viewModel = new GroupCrossReferenceViewModel
+            {
+                Id = gcr.Data.Id,
+                Name = gcr.Data.GroupName,
+                CrossReferenceAlias = gcr.Data.CrossReference.Server.Name + " - " +
+                                      gcr.Data.CrossReference.Regulation.Name + " - " +
+                                      gcr.Data.CrossReference.Branch.Name + " - " +
+                                      gcr.Data.CrossReference.Company.Name
+            };
+
+            return View(viewModel);
         }
 
         // POST: GroupCrossReferences/Edit/5
@@ -107,9 +186,9 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, GroupCrossReferenceResponse groupCrossReference)
+        public IActionResult Edit(int id, GroupCrossReferenceViewModel groupCrossReference)
         {
-            if (id != groupCrossReference.GroupCrossReferenceId)
+            if (id != groupCrossReference.Id)
             {
                 return NotFound();
             }
@@ -120,25 +199,23 @@ namespace TradeApp.UI.Controllers
                 {
                     var response =
                         ApiConsumer.Get<CrossReference>(
-                            "https://localhost:44305/api/CrossReference" +
-                            $"?serverId={groupCrossReference.ServerId}&regulationId={groupCrossReference.RegulationId}" +
-                            $"&branchId={groupCrossReference.BranchId}&companyI={groupCrossReference.CompanyId}");
+                            $"https://localhost:44305/api/CrossReference/{groupCrossReference.CrossReferenceId}");
 
                     if (response.Data == null)
                     {
                         return NotFound();
                     }
 
-                    var gcr = new GroupCrossReference
+                    var updatedGcr = new GroupCrossReference
                     {
-                        CrossReferenceId = response.Data.Id, GroupName = groupCrossReference.GroupName
+                        CrossReferenceId = response.Data.Id, GroupName = groupCrossReference.Name, Id = id
                     };
 
-                    ApiConsumer.Put<GroupCrossReference>(gcr, "https://localhost:44305/api/Group");
+                    ApiConsumer.Put<GroupCrossReference>(updatedGcr, $"https://localhost:44305/api/Group/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!GroupCrossReferenceExists(groupCrossReference.GroupCrossReferenceId))
+                    if (!GroupCrossReferenceExists(groupCrossReference.Id))
                     {
                         return NotFound();
                     }
@@ -149,18 +226,45 @@ namespace TradeApp.UI.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
-            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
-            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
-            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+            var gcr =
+                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}/detail");
 
-            ViewData["ServerName"] = new SelectList(server.Data, "Id", "Name", groupCrossReference.ServerId);
-            ViewData["RegulationName"] =
-                new SelectList(regulation.Data, "Id", "Name", groupCrossReference.RegulationId);
-            ViewData["BranchName"] = new SelectList(branch.Data, "Id", "Name", groupCrossReference.BranchId);
-            ViewData["CompanyName"] = new SelectList(company.Data, "Id", "Name", groupCrossReference.CompanyId);
+            var crossReference = gcr.Data.CrossReference;
 
-            return View(groupCrossReference);
+            var serverId = crossReference.ServerId;
+
+            var relatedCrossReferences =
+                ApiConsumer.Get<List<CrossReference>>($"https://localhost:44305/api/CossReference/Server/{serverId}");
+
+            var selectListDataSource = new List<GroupCrossReferenceViewModel>();
+
+            foreach (var item in relatedCrossReferences.Data)
+            {
+                selectListDataSource.Add(new GroupCrossReferenceViewModel
+                {
+                    Id = item.Id,
+                    CrossReferenceAlias = item.Server.Name + " - " +
+                                          item.Regulation.Name + " - " +
+                                          item.Branch.Name + " - " +
+                                          item.Company.Name,
+                    CrossReferenceId = item.Id
+                });
+            }
+
+            ViewData["CrossReference"] = new SelectList(selectListDataSource, "CrossReferenceId", "CrossReferenceAlias",
+                crossReference.Id);
+
+            var viewModel = new GroupCrossReferenceViewModel
+            {
+                Id = gcr.Data.Id,
+                Name = gcr.Data.GroupName,
+                CrossReferenceAlias = gcr.Data.CrossReference.Server.Name + " - " +
+                                      gcr.Data.CrossReference.Regulation.Name + " - " +
+                                      gcr.Data.CrossReference.Branch.Name + " - " +
+                                      gcr.Data.CrossReference.Company.Name
+            };
+
+            return View(viewModel);
         }
 
         // GET: GroupCrossReferences/Delete/5

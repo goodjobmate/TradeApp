@@ -58,8 +58,9 @@ namespace TradeApp.Api.Controllers
 
         // PUT: api/Tag/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public void Put(int id, [FromBody] AddTagRequest request)
         {
+            //var (exist, id) = _widgetService.CheckIfTagExists(request);
         }
 
         // DELETE: api/ApiWithActions/5

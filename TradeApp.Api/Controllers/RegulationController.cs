@@ -25,7 +25,7 @@ namespace TradeApp.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Regulation>>> GetRegulations()
         {
-            return await _context.Regulations.ToListAsync();
+            return await _context.Regulations.OrderBy(x => x.Id).ToListAsync();
         }
 
         // GET: api/Regulation/5

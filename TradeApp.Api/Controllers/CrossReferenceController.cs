@@ -23,7 +23,17 @@ namespace TradeApp.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CrossReference>>> GetCrossReferences()
         {
-            return await _context.CrossReferences.ToListAsync();
+            return await _context.CrossReferences.OrderBy(x => x.Id).ToListAsync();
+        }
+        [HttpGet("details")]
+        public async Task<ActionResult<IEnumerable<CrossReference>>> GetCrossReferencesWithDetails()
+        {
+            var crossReferences = await _context.CrossReferences.Include(x => x.Server)
+                .Include(x => x.Regulation)
+                .Include(x => x.Branch)
+                .Include(x => x.Company).OrderBy(x => x.Id).ToListAsync();
+
+            return crossReferences;
         }
 
         // GET: api/CrossReference/5
@@ -58,8 +68,8 @@ namespace TradeApp.Api.Controllers
             return crossReference;
         }
 
-        [HttpGet("{serverId:int}&{regulationId:int}&{branchId:int}&{companyId:int}&")]
-        public ActionResult<CrossReference> Get([FromQuery] int serverId, [FromQuery] int regulationId, [FromQuery] int branchId, [FromQuery] int companyId)
+        [HttpGet("detail")]
+        public ActionResult<CrossReference> GetCrossReferenceDetailByParams([FromQuery] int serverId, [FromQuery] int regulationId, [FromQuery] int branchId, [FromQuery] int companyId)
         {
             var crossReference = _context.CrossReferences.FirstOrDefault(x =>
                 x.ServerId == serverId
@@ -73,6 +83,22 @@ namespace TradeApp.Api.Controllers
             }
 
             return Ok(crossReference);
+        }
+
+        [HttpGet("server/{serverId:int}")]
+        public ActionResult<List<CrossReference>> GetCrossReferencesByServerId(int serverId)
+        {
+            var crossReferences = _context.CrossReferences.Include(x => x.Server)
+                .Include(x => x.Regulation)
+                .Include(x => x.Branch)
+                .Include(x => x.Company).Where(x=>x.ServerId == serverId).OrderBy(x => x.Id).ToList();
+
+            if (!crossReferences.Any())
+            {
+                return NotFound(crossReferences);
+            }
+
+            return Ok(crossReferences);
         }
 
         // PUT: api/CrossReference/5

@@ -87,7 +87,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    ApiConsumer.Put<List<Regulation>>(regulation, "https://localhost:44305/api/regulation");
+                    ApiConsumer.Put<List<Regulation>>(regulation, "https://localhost:44305/api/regulation/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {

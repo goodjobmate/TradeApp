@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using TradeApp.Business.Services;
 using TradeApp.Business.Services.Interfaces;
 using TradeApp.Data.Contexts;
@@ -32,6 +33,11 @@ namespace TradeApp.Api
 
             services.AddScoped<IWidgetService, WidgetService>();
             services.AddScoped<IBaseMetaService, BaseMetaService>();
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "TradeAppApi", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,6 +55,14 @@ namespace TradeApp.Api
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "TradeAppApi V1");
+                c.RoutePrefix = string.Empty;
+            });
         }
     }
 }

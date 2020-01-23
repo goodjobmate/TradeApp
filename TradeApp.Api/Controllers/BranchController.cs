@@ -25,7 +25,7 @@ namespace TradeApp.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Branch>>> GetBranches()
         {
-            return await _context.Branches.ToListAsync();
+            return await _context.Branches.OrderBy(x => x.Id).ToListAsync();
         }
 
         // GET: api/Branch/5

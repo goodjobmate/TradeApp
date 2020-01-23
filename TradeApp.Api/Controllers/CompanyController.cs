@@ -25,7 +25,7 @@ namespace TradeApp.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Company>>> GetCompanies()
         {
-            return await _context.Companies.ToListAsync();
+            return await _context.Companies.OrderBy(x => x.Id).ToListAsync();
         }
 
         // GET: api/Company/5

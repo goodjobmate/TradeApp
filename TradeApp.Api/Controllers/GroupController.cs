@@ -30,7 +30,18 @@ namespace TradeApp.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GroupCrossReference>>> GetGroupCrossReferences()
         {
-            return await _context.GroupCrossReferences.ToListAsync();
+            return await _context.GroupCrossReferences.OrderBy(x => x.Id).ToListAsync();
+        }
+
+        [HttpGet("details")]
+        public async Task<ActionResult<IEnumerable<GroupCrossReference>>> GetGroupCrossReferencesWithDetails()
+        {
+            return await _context.GroupCrossReferences
+                .Include(x => x.CrossReference).ThenInclude(x => x.Server)
+                .Include(x => x.CrossReference).ThenInclude(x => x.Regulation)
+                .Include(x => x.CrossReference).ThenInclude(x => x.Branch)
+                .Include(x => x.CrossReference).ThenInclude(x => x.Company)
+                .OrderBy(x => x.Id).ToListAsync();
         }
 
         [HttpGet("Server/{serverId:int}")]
@@ -44,6 +55,23 @@ namespace TradeApp.Api.Controllers
             }
 
             return Ok(response);
+        }
+
+        [HttpGet("{id}/detail")]
+        public ActionResult<GroupCrossReference> GetGroupDetail(int id)
+        {
+            var response = _context.GroupCrossReferences
+                .Include(x => x.CrossReference).ThenInclude(x => x.Server)
+                .Include(x => x.CrossReference).ThenInclude(x => x.Regulation)
+                .Include(x => x.CrossReference).ThenInclude(x => x.Branch)
+                .Include(x => x.CrossReference).ThenInclude(x => x.Company).FirstOrDefault(x => x.Id == id);
+
+            if (response == null)
+            {
+                return NotFound();
+            }
+
+            return response;
         }
 
         // GET: api/Group/5

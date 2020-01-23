@@ -25,7 +25,7 @@ namespace TradeApp.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Server>>> GetServers()
         {
-            return await _context.Servers.ToListAsync();
+            return await _context.Servers.OrderBy(x => x.Id).ToListAsync();
         }
 
         // GET: api/Server/5
