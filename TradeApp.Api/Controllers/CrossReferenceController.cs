@@ -58,6 +58,23 @@ namespace TradeApp.Api.Controllers
             return crossReference;
         }
 
+        [HttpGet("{serverId:int}&{regulationId:int}&{branchId:int}&{companyId:int}&")]
+        public ActionResult<CrossReference> Get([FromQuery] int serverId, [FromQuery] int regulationId, [FromQuery] int branchId, [FromQuery] int companyId)
+        {
+            var crossReference = _context.CrossReferences.FirstOrDefault(x =>
+                x.ServerId == serverId
+                && x.RegulationId == regulationId
+                && x.BranchId == branchId
+                && x.CompanyId == companyId);
+
+            if (crossReference == null)
+            {
+                return NoContent();
+            }
+
+            return Ok(crossReference);
+        }
+
         // PUT: api/CrossReference/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.

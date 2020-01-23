@@ -13,6 +13,7 @@
 
 
   <ItemGroup>
+    <ProjectReference Include="..\TradeApp.Business\TradeApp.Business.csproj" />
     <ProjectReference Include="..\TradeApp.Data\TradeApp.Data.csproj" />
   </ItemGroup>
 

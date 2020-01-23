@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TradeApp.Data.Contexts;
@@ -10,13 +8,6 @@ namespace TradeApp.UI.Controllers
 {
     public class BranchesController : Controller
     {
-        private readonly BaseMetaDbContext _context;
-
-        public BranchesController(BaseMetaDbContext context)
-        {
-            _context = context;
-        }
-
         // GET: Branches
         public IActionResult Index()
         {
@@ -57,9 +48,10 @@ namespace TradeApp.UI.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = ApiConsumer.Post<Branch>(branch,$"https://localhost:44305/api/branch");
+                var response = ApiConsumer.Post<Branch>(branch, "https://localhost:44305/api/branch");
                 return RedirectToAction(nameof(Index));
             }
+
             return View(branch);
         }
 
@@ -76,6 +68,7 @@ namespace TradeApp.UI.Controllers
             {
                 return NotFound();
             }
+
             return View(response.Data);
         }
 
@@ -104,13 +97,13 @@ namespace TradeApp.UI.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(branch);
         }
 
@@ -134,7 +127,8 @@ namespace TradeApp.UI.Controllers
         }
 
         // POST: Branches/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
@@ -144,7 +138,7 @@ namespace TradeApp.UI.Controllers
 
         private bool BranchExists(int id)
         {
-            return _context.Branches.Any(e => e.Id == id);
+            return ApiConsumer.Get<Branch>($"https://localhost:44305/api/Branch/{id}").Data != null;
         }
     }
 }

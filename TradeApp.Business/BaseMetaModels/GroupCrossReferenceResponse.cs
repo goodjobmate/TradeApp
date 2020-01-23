@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace TradeApp.UI.Models
+﻿namespace TradeApp.Business.BaseMetaModels
 {
-    public class GroupCrossReferenceViewModel
+    public class GroupCrossReferenceResponse
     {
         public string GroupName { get; set; }
         public string ServerName { get; set; }

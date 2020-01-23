@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TradeApp.Business.BaseMetaModels;
+using TradeApp.Business.Services.Interfaces;
 using TradeApp.Data.Contexts;
 using TradeApp.Data.Models.BaseMetaDbModels;
 
@@ -15,10 +17,13 @@ namespace TradeApp.Api.Controllers
     public class GroupController : ControllerBase
     {
         private readonly BaseMetaDbContext _context;
+        private readonly IBaseMetaService _baseMetaService;
 
-        public GroupController(BaseMetaDbContext context)
+        public GroupController(BaseMetaDbContext context,
+            IBaseMetaService baseMetaService)
         {
             _context = context;
+            _baseMetaService = baseMetaService;
         }
 
         // GET: api/Group
@@ -26,6 +31,19 @@ namespace TradeApp.Api.Controllers
         public async Task<ActionResult<IEnumerable<GroupCrossReference>>> GetGroupCrossReferences()
         {
             return await _context.GroupCrossReferences.ToListAsync();
+        }
+
+        [HttpGet("Server/{serverId:int}")]
+        public ActionResult<IEnumerable<GroupCrossReferenceResponse>> GetGroupsByServer(int serverId)
+        {
+            var response = _baseMetaService.GetGroupsByServerId(serverId);
+
+            if (!response.Any())
+            {
+                return NotFound(response);
+            }
+
+            return Ok(response);
         }
 
         // GET: api/Group/5

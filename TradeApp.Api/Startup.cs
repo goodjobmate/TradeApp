@@ -31,6 +31,7 @@ namespace TradeApp.Api
                 options.UseNpgsql(Configuration.GetConnectionString("BaseMetaDbContext")));
 
             services.AddScoped<IWidgetService, WidgetService>();
+            services.AddScoped<IBaseMetaService, BaseMetaService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

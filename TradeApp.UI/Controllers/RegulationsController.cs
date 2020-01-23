@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TradeApp.Data.Contexts;
@@ -10,22 +8,15 @@ namespace TradeApp.UI.Controllers
 {
     public class RegulationsController : Controller
     {
-        private readonly BaseMetaDbContext _context;
-
-        public RegulationsController(BaseMetaDbContext context)
-        {
-            _context = context;
-        }
-
         // GET: Regulations
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             var response = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
             return View(response.Data);
         }
 
         // GET: Regulations/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
@@ -52,11 +43,11 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description")] Regulation regulation)
+        public IActionResult Create([Bind("Id,Name,Description")] Regulation regulation)
         {
             if (ModelState.IsValid)
             {
-                var response = ApiConsumer.Post<Regulation>(regulation, "https://localhost:44305/api/regulation");
+                ApiConsumer.Post<Regulation>(regulation, "https://localhost:44305/api/regulation");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -64,20 +55,20 @@ namespace TradeApp.UI.Controllers
         }
 
         // GET: Regulations/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var regulation = await _context.Regulations.FindAsync(id);
-            if (regulation == null)
+            var response = ApiConsumer.Get<Regulation>($"https://localhost:44305/api/regulation/{id}");
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(regulation);
+            return View(response.Data);
         }
 
         // POST: Regulations/Edit/5
@@ -85,7 +76,7 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] Regulation regulation)
+        public IActionResult Edit(int id, [Bind("Id,Name,Description")] Regulation regulation)
         {
             if (id != regulation.Id)
             {
@@ -96,8 +87,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    var response =
-                        ApiConsumer.Put<List<Regulation>>(regulation, "https://localhost:44305/api/regulation");
+                    ApiConsumer.Put<List<Regulation>>(regulation, "https://localhost:44305/api/regulation");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -116,7 +106,7 @@ namespace TradeApp.UI.Controllers
         }
 
         // GET: Regulations/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
@@ -136,15 +126,15 @@ namespace TradeApp.UI.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var response = ApiConsumer.Delete<Regulation>($"https://localhost:44305/api/regulation/{id}");
+            ApiConsumer.Delete<Regulation>($"https://localhost:44305/api/regulation/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool RegulationExists(int id)
         {
-            return _context.Regulations.Any(e => e.Id == id);
+            return ApiConsumer.Get<Regulation>($"https://localhost:44305/api/Regulation/{id}").Data != null;
         }
     }
 }

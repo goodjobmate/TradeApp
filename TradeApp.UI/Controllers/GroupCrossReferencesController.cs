@@ -1,53 +1,48 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using TradeApp.Data.Contexts;
+using TradeApp.Business.BaseMetaModels;
 using TradeApp.Data.Models.BaseMetaDbModels;
-using TradeApp.UI.Models;
 
 namespace TradeApp.UI.Controllers
 {
     public class GroupCrossReferencesController : Controller
     {
-        private readonly BaseMetaDbContext _context;
-
-        public GroupCrossReferencesController(BaseMetaDbContext context)
-        {
-            _context = context;
-        }
-
         // GET: GroupCrossReferences
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var baseMetaDbContext = _context.GroupCrossReferences.Include(g => g.CrossReference);
-            return View(await baseMetaDbContext.ToListAsync());
+            var response =
+                ApiConsumer.Get<List<GroupCrossReference>>("https://localhost:44305/api/Group");
+            return View(response.Data);
         }
 
         // GET: GroupCrossReferences/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var groupCrossReference = await _context.GroupCrossReferences
-                .Include(g => g.CrossReference)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (groupCrossReference == null)
+            var response =
+                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}");
+
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(groupCrossReference);
+            return View(response.Data);
         }
 
         // GET: GroupCrossReferences/Create
         public IActionResult Create()
         {
-            ViewData["CrossReferenceId"] = new SelectList(_context.CrossReferences, "Id", "Id");
+            var response =
+                ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference");
+
+            ViewData["CrossReferenceId"] = new SelectList(response.Data, "Id", "Id");
             return View();
         }
 
@@ -56,59 +51,55 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,CrossReferenceId,GroupName")]
+        public IActionResult Create([Bind("Id,CrossReferenceId,GroupName")]
             GroupCrossReference groupCrossReference)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(groupCrossReference);
-                await _context.SaveChangesAsync();
+                ApiConsumer.Post<CrossReference>(groupCrossReference,
+                    "https://localhost:44305/api/Group");
+
                 return RedirectToAction(nameof(Index));
             }
 
+            var crossReferenceResponse =
+                ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference");
+
             ViewData["CrossReferenceId"] =
-                new SelectList(_context.CrossReferences, "Id", "Id", groupCrossReference.CrossReferenceId);
+                new SelectList(crossReferenceResponse.Data, "Id", "Id", groupCrossReference.CrossReferenceId);
+
             return View(groupCrossReference);
         }
 
         // GET: GroupCrossReferences/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var query = from cr in _context.CrossReferences
-                join gcr in _context.GroupCrossReferences on cr.Id equals gcr
-                    .CrossReferenceId
-                where gcr.Id == id
-                join server in _context.Servers on cr.ServerId equals server.Id
-                join regulation in _context.Regulations on cr.RegulationId equals regulation.Id
-                join branch in _context.Branches on cr.BranchId equals branch.Id
-                join company in _context.Companies on cr.CompanyId equals company.Id
-                select new GroupCrossReferenceViewModel
-                {
-                    ServerName = server.Name,
-                    RegulationName = regulation.Name,
-                    BranchName = branch.Name,
-                    CompanyName = company.Name,
-                    GroupName = gcr.GroupName,
-                    ServerId = server.Id,
-                    RegulationId = regulation.Id,
-                    BranchId = branch.Id,
-                    CompanyId = company.Id,
-                    CrossReferenceId = cr.Id,
-                    GroupCrossReferenceId = gcr.Id
-                };
+            var gcr =
+                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}");
 
-            var viewModel = await query.FirstOrDefaultAsync();
+            var crossReference =
+                ApiConsumer.Get<CrossReference>(
+                    $"https://localhost:44305/api/CrossReference/{gcr.Data.CrossReferenceId}");
+            
+            var response = ApiConsumer.Get<List<GroupCrossReferenceResponse>>(
+                $"https://localhost:44305/api/group/server/{crossReference.Data.ServerId}");
 
-            ViewData["ServerName"] = new SelectList(_context.Servers, "Id", "Name", viewModel.ServerId);
-            ViewData["RegulationName"] = new SelectList(_context.Regulations, "Id", "Name", viewModel.RegulationId);
-            ViewData["BranchName"] = new SelectList(_context.Branches, "Id", "Name", viewModel.BranchId);
-            ViewData["CompanyName"] = new SelectList(_context.Companies, "Id", "Name", viewModel.CompanyId);
-            return View(viewModel);
+            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
+            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
+            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
+            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+
+            ViewData["ServerName"] = new SelectList(server.Data, "Id", "Name", crossReference.Data.ServerId);
+            ViewData["RegulationName"] = new SelectList(regulation.Data, "Id", "Name", crossReference.Data.RegulationId);
+            ViewData["BranchName"] = new SelectList(branch.Data, "Id", "Name", crossReference.Data.BranchId);
+            ViewData["CompanyName"] = new SelectList(company.Data, "Id", "Name", crossReference.Data.CompanyId);
+
+            return View(response.Data);
         }
 
         // POST: GroupCrossReferences/Edit/5
@@ -116,7 +107,7 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, GroupCrossReferenceViewModel groupCrossReference)
+        public IActionResult Edit(int id, GroupCrossReferenceResponse groupCrossReference)
         {
             if (id != groupCrossReference.GroupCrossReferenceId)
             {
@@ -127,24 +118,23 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    var crossReference = await _context.CrossReferences.FirstOrDefaultAsync(x =>
-                        x.ServerId == groupCrossReference.ServerId
-                        && x.RegulationId == groupCrossReference.RegulationId
-                        && x.BranchId == groupCrossReference.BranchId
-                        && x.CompanyId == groupCrossReference.CompanyId);
+                    var response =
+                        ApiConsumer.Get<CrossReference>(
+                            "https://localhost:44305/api/CrossReference" +
+                            $"?serverId={groupCrossReference.ServerId}&regulationId={groupCrossReference.RegulationId}" +
+                            $"&branchId={groupCrossReference.BranchId}&companyI={groupCrossReference.CompanyId}");
 
-                    if (crossReference == null)
+                    if (response.Data == null)
                     {
                         return NotFound();
                     }
 
-                    var gcr = await _context.GroupCrossReferences.FindAsync(groupCrossReference.GroupCrossReferenceId);
-                    gcr.CrossReferenceId = crossReference.Id;
-                    gcr.GroupName = groupCrossReference.GroupName;
+                    var gcr = new GroupCrossReference
+                    {
+                        CrossReferenceId = response.Data.Id, GroupName = groupCrossReference.GroupName
+                    };
 
-                    _context.Update(gcr);
-
-                    await _context.SaveChangesAsync();
+                    ApiConsumer.Put<GroupCrossReference>(gcr, "https://localhost:44305/api/Group");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -159,48 +149,52 @@ namespace TradeApp.UI.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["ServerName"] = new SelectList(_context.Servers, "Id", "Name", groupCrossReference.ServerId);
+            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
+            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
+            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
+            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+
+            ViewData["ServerName"] = new SelectList(server.Data, "Id", "Name", groupCrossReference.ServerId);
             ViewData["RegulationName"] =
-                new SelectList(_context.Regulations, "Id", "Name", groupCrossReference.RegulationId);
-            ViewData["BranchName"] = new SelectList(_context.Branches, "Id", "Name", groupCrossReference.BranchId);
-            ViewData["CompanyName"] = new SelectList(_context.Companies, "Id", "Name", groupCrossReference.CompanyId);
+                new SelectList(regulation.Data, "Id", "Name", groupCrossReference.RegulationId);
+            ViewData["BranchName"] = new SelectList(branch.Data, "Id", "Name", groupCrossReference.BranchId);
+            ViewData["CompanyName"] = new SelectList(company.Data, "Id", "Name", groupCrossReference.CompanyId);
+
             return View(groupCrossReference);
         }
 
         // GET: GroupCrossReferences/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var groupCrossReference = await _context.GroupCrossReferences
-                .Include(g => g.CrossReference)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (groupCrossReference == null)
+            var response =
+                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}");
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(groupCrossReference);
+            return View(response.Data);
         }
 
         // POST: GroupCrossReferences/Delete/5
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var groupCrossReference = await _context.GroupCrossReferences.FindAsync(id);
-            _context.GroupCrossReferences.Remove(groupCrossReference);
-            await _context.SaveChangesAsync();
+            ApiConsumer.Delete<GroupCrossReference>($"https://localhost:44305/api/Group/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool GroupCrossReferenceExists(int id)
         {
-            return _context.GroupCrossReferences.Any(e => e.Id == id);
+            return ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}").Data !=
+                   null;
         }
     }
 }

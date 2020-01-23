@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TradeApp.Data.Contexts;
@@ -10,22 +8,15 @@ namespace TradeApp.UI.Controllers
 {
     public class ServerController : Controller
     {
-        private readonly BaseMetaDbContext _context;
-
-        public ServerController(BaseMetaDbContext context)
-        {
-            _context = context;
-        }
-
         // GET: Server
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             var response = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
             return View(response.Data);
         }
 
         // GET: Server/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
@@ -52,12 +43,12 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Region,Dns,IpAddress,MetaType,MetaVersion,Description")]
+        public IActionResult Create([Bind("Id,Name,Region,Dns,IpAddress,MetaType,MetaVersion,Description")]
             Server server)
         {
             if (ModelState.IsValid)
             {
-                var response = ApiConsumer.Post<Server>(server, "https://localhost:44305/api/server");
+                ApiConsumer.Post<Server>(server, "https://localhost:44305/api/server");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -65,7 +56,7 @@ namespace TradeApp.UI.Controllers
         }
 
         // GET: Server/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
@@ -86,7 +77,7 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id,
+        public IActionResult Edit(int id,
             [Bind("Id,Name,Region,Dns,IpAddress,MetaType,MetaVersion,Description")]
             Server server)
         {
@@ -99,7 +90,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    var response = ApiConsumer.Put<Server>(server, $"https://localhost:44305/api/server/{id}");
+                    ApiConsumer.Put<Server>(server, $"https://localhost:44305/api/server/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -118,7 +109,7 @@ namespace TradeApp.UI.Controllers
         }
 
         // GET: Server/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
@@ -138,15 +129,15 @@ namespace TradeApp.UI.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var response = ApiConsumer.Delete<Server>($"https://localhost:44305/api/server/{id}");
+            ApiConsumer.Delete<Server>($"https://localhost:44305/api/server/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool ServerExists(int id)
         {
-            return _context.Servers.Any(e => e.Id == id);
+            return ApiConsumer.Get<Server>($"https://localhost:44305/api/Server/{id}").Data != null;
         }
     }
 }

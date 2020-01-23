@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,51 +9,46 @@ namespace TradeApp.UI.Controllers
 {
     public class CrossReferencesController : Controller
     {
-        private readonly BaseMetaDbContext _context;
-
-        public CrossReferencesController(BaseMetaDbContext context)
-        {
-            _context = context;
-        }
-
         // GET: CrossReferences
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var baseMetaDbContext = _context.CrossReferences.Include(c => c.Branch)
-                .Include(c => c.Company)
-                .Include(c => c.Regulation).Include(c => c.Server);
-            return View(await baseMetaDbContext.ToListAsync());
+            var response = ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference");
+
+            return View(response.Data);
         }
 
         // GET: CrossReferences/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var crossReference = await _context.CrossReferences
-                .Include(c => c.Branch)
-                .Include(c => c.Company)
-                .Include(c => c.Regulation)
-                .Include(c => c.Server)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (crossReference == null)
+            var response =
+                ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}/detail");
+
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(crossReference);
+            return View(response.Data);
         }
 
         // GET: CrossReferences/Create
         public IActionResult Create()
         {
-            ViewData["BranchId"] = new SelectList(_context.Branches, "Id", "Name");
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name");
-            ViewData["RegulationId"] = new SelectList(_context.Regulations, "Id", "Name");
-            ViewData["ServerId"] = new SelectList(_context.Servers, "Id", "Name");
+            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
+            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
+            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
+            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+
+            ViewData["BranchId"] = new SelectList(branch.Data, "Id", "Name");
+            ViewData["CompanyId"] = new SelectList(company.Data, "Id", "Name");
+            ViewData["RegulationId"] = new SelectList(regulation.Data, "Id", "Name");
+            ViewData["ServerId"] = new SelectList(server.Data, "Id", "Name");
+
             return View();
         }
 
@@ -63,42 +57,54 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ServerId,RegulationId,BranchId,CompanyId")]
+        public IActionResult Create([Bind("Id,ServerId,RegulationId,BranchId,CompanyId")]
             CrossReference crossReference)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(crossReference);
-                await _context.SaveChangesAsync();
+                ApiConsumer.Post<Branch>(crossReference, "https://localhost:44305/api/CrossReference");
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["BranchId"] = new SelectList(_context.Branches, "Id", "Name", crossReference.BranchId);
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", crossReference.CompanyId);
-            ViewData["RegulationId"] = new SelectList(_context.Regulations, "Id", "Name", crossReference.RegulationId);
-            ViewData["ServerId"] = new SelectList(_context.Servers, "Id", "Name", crossReference.ServerId);
+            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
+            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
+            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
+            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+
+            ViewData["BranchId"] = new SelectList(branch.Data, "Id", "Name", crossReference.BranchId);
+            ViewData["CompanyId"] = new SelectList(company.Data, "Id", "Name", crossReference.CompanyId);
+            ViewData["RegulationId"] = new SelectList(regulation.Data, "Id", "Name", crossReference.RegulationId);
+            ViewData["ServerId"] = new SelectList(server.Data, "Id", "Name", crossReference.ServerId);
             return View(crossReference);
         }
 
         // GET: CrossReferences/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var crossReference = await _context.CrossReferences.FindAsync(id);
-            if (crossReference == null)
+
+            var response =
+                ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}");
+
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            ViewData["BranchId"] = new SelectList(_context.Branches, "Id", "Name", crossReference.BranchId);
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", crossReference.CompanyId);
-            ViewData["RegulationId"] = new SelectList(_context.Regulations, "Id", "Name", crossReference.RegulationId);
-            ViewData["ServerId"] = new SelectList(_context.Servers, "Id", "Name", crossReference.ServerId);
-            return View(crossReference);
+            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
+            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
+            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
+            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+
+            ViewData["BranchId"] = new SelectList(branch.Data, "Id", "Name", response.Data.BranchId);
+            ViewData["CompanyId"] = new SelectList(company.Data, "Id", "Name", response.Data.CompanyId);
+            ViewData["RegulationId"] = new SelectList(regulation.Data, "Id", "Name", response.Data.RegulationId);
+            ViewData["ServerId"] = new SelectList(server.Data, "Id", "Name", response.Data.ServerId);
+            return View(response.Data);
         }
 
         // POST: CrossReferences/Edit/5
@@ -106,7 +112,7 @@ namespace TradeApp.UI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ServerId,RegulationId,BranchId,CompanyId")]
+        public IActionResult Edit(int id, [Bind("Id,ServerId,RegulationId,BranchId,CompanyId")]
             CrossReference crossReference)
         {
             if (id != crossReference.Id)
@@ -118,8 +124,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    _context.Update(crossReference);
-                    await _context.SaveChangesAsync();
+                    ApiConsumer.Put<Branch>(crossReference, "https://localhost:44305/api/CrossReference");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -127,58 +132,61 @@ namespace TradeApp.UI.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
 
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["BranchId"] = new SelectList(_context.Branches, "Id", "Name", crossReference.BranchId);
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", crossReference.CompanyId);
-            ViewData["RegulationId"] = new SelectList(_context.Regulations, "Id", "Name", crossReference.RegulationId);
-            ViewData["ServerId"] = new SelectList(_context.Servers, "Id", "Name", crossReference.ServerId);
+            var response =
+                ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}");
+
+            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
+            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
+            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
+            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+
+            ViewData["BranchId"] = new SelectList(branch.Data, "Id", "Name", response.Data.BranchId);
+            ViewData["CompanyId"] = new SelectList(company.Data, "Id", "Name", response.Data.CompanyId);
+            ViewData["RegulationId"] = new SelectList(regulation.Data, "Id", "Name", response.Data.RegulationId);
+            ViewData["ServerId"] = new SelectList(server.Data, "Id", "Name", response.Data.ServerId);
+
             return View(crossReference);
         }
 
         // GET: CrossReferences/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var crossReference = await _context.CrossReferences
-                .Include(c => c.Branch)
-                .Include(c => c.Company)
-                .Include(c => c.Regulation)
-                .Include(c => c.Server)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (crossReference == null)
+            var response =
+                ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}/detail");
+
+            if (response.Data == null)
             {
                 return NotFound();
             }
 
-            return View(crossReference);
+            return View(response.Data);
         }
 
         // POST: CrossReferences/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var crossReference = await _context.CrossReferences.FindAsync(id);
-            _context.CrossReferences.Remove(crossReference);
-            await _context.SaveChangesAsync();
+            ApiConsumer.Delete<CrossReference>($"https://localhost:44305/api/CrossReference/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool CrossReferenceExists(int id)
         {
-            return _context.CrossReferences.Any(e => e.Id == id);
+            return ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}").Data != null;
         }
     }
 }
