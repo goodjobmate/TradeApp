@@ -158,14 +158,14 @@ namespace TradeApp.Business.Services
             _context.SaveChanges();
         }
 
-        public int CreateTag(AddTagRequest request)
+        public int CreateTag(TagDto dto)
         {
-            var (tagFilterJson, tagLoginsJson) = GetTagAsJson(request);
+            var (tagFilterJson, tagLoginsJson) = GetTagAsJson(dto);
 
             var tag = new Tag
             {
                 Key = tagFilterJson,
-                Name = request.Name,
+                Name = dto.Name,
                 Logins = tagLoginsJson
             };
 
@@ -175,9 +175,9 @@ namespace TradeApp.Business.Services
             return tag.Id;
         }
 
-        public (bool exist, int id) CheckIfTagExists(AddTagRequest request)
+        public (bool exist, int id) CheckIfTagExists(TagDto dto)
         {
-            var (jFilter, jLogins) = GetTagAsJson(request);
+            var (jFilter, jLogins) = GetTagAsJson(dto);
 
             var existingTag =
                 _context.Tags.FirstOrDefault(f =>
@@ -229,10 +229,45 @@ namespace TradeApp.Business.Services
             return response;
         }
 
-        private (string tagFilterJson, string tagLoginsJson) GetTagAsJson(AddTagRequest request)
+        public void UpdateTag(TagDto dto)
         {
-            var filter = request.TagFilter;
-            var logins = request.TagFilter.Logins;
+            var existingTag = _context.Tags.Find(dto.Id);
+
+            var (jFilter, jLogin) = GetTagAsJson(dto);
+
+            existingTag.Name = dto.Name;
+            existingTag.Key = jFilter;
+            existingTag.Logins = jLogin;
+
+            _context.Tags.Update(existingTag);
+            _context.SaveChanges();
+        }
+
+        public TagDto GetTagById(int id)
+        {
+            var tag = _context.Tags.Find(id);
+
+            if (tag == null)
+            {
+                return null;
+            }
+
+            var dto = new TagDto
+            {
+                Name = tag.Name,
+                Id = tag.Id,
+                TagFilter = JsonConvert.DeserializeObject<TagFilterDto>(tag.Key)
+            };
+
+            dto.TagFilter.Logins = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(tag.Logins);
+
+            return dto;
+        }
+
+        private (string tagFilterJson, string tagLoginsJson) GetTagAsJson(TagDto dto)
+        {
+            var filter = dto.TagFilter;
+            var logins = dto.TagFilter.Logins;
 
             filter.Logins = new Dictionary<int, List<int>>();
 

@@ -10,8 +10,10 @@ namespace TradeApp.Business.Services.Interfaces
         List<ResultDto> GetMenu(int userId);
         int CreateUserDashboardWidget(int userId, UserDashboardWidgetDto userDashboardWidget);
         void DeleteWidget(int id);
-        int CreateTag(AddTagRequest request);
-        (bool exist, int id) CheckIfTagExists(AddTagRequest request);
+        int CreateTag(TagDto dto);
+        (bool exist, int id) CheckIfTagExists(TagDto dto);
         List<ResultDto> GetTagsWithServerAndRegulation(int? serverId, int? regulationId);
+        void UpdateTag(TagDto dto);
+        TagDto GetTagById(int id);
     }
 }

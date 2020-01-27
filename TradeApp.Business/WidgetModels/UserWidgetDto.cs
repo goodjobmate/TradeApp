@@ -56,8 +56,14 @@ namespace TradeApp.Business.WidgetModels
         public bool Moved { get; set; }
     }
 
-    public class AddTagRequest
+    public class TagDto
     {
+        public TagDto()
+        {
+            TagFilter = new TagFilterDto();
+        }
+
+        public int Id { get; set; }
         public string Name { get; set; }
         public TagFilterDto TagFilter { get; set; }
     }

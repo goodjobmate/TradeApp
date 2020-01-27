@@ -1,8 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TradeApp.Business.Services.Interfaces;
 using TradeApp.Business.WidgetModels;
+using TradeApp.Data.Contexts;
+using TradeApp.Data.Models.BaseMetaDbModels;
+using TradeApp.Data.Models.TradeDbModels;
 
 namespace TradeApp.Api.Controllers
 {
@@ -10,16 +15,19 @@ namespace TradeApp.Api.Controllers
     [ApiController]
     public class TagController : ControllerBase
     {
+        private readonly TradeDbContext _context;
         private readonly IWidgetService _widgetService;
 
-        public TagController(IWidgetService widgetService)
+        public TagController(IWidgetService widgetService,
+            TradeDbContext context)
         {
             _widgetService = widgetService;
+            _context = context;
         }
 
         // GET: api/Tag
         [HttpGet]
-        public ActionResult<List<ResultDto>> Get([FromQuery] int? serverId, [FromQuery] int? regulationId)
+        public ActionResult<IEnumerable<ResultDto>> Get([FromQuery] int? serverId, [FromQuery] int? regulationId)
         {
             var tags = _widgetService.GetTagsWithServerAndRegulation(serverId, regulationId);
 
@@ -33,14 +41,22 @@ namespace TradeApp.Api.Controllers
 
         // GET: api/Tag/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ActionResult<Tag> Get(int id)
         {
-            return "value";
+            //var tag = _widgetService.GetTagById(id);
+            var tag = _context.Tags.Find(id);
+
+            if (tag == null)
+            {
+                return NoContent();
+            }
+
+            return Ok(tag);
         }
 
         // POST: api/Tag
         [HttpPost]
-        public IActionResult Post([FromBody] AddTagRequest request)
+        public IActionResult Post([FromBody] TagDto request)
         {
             //TODO : Validations
 
@@ -58,15 +74,107 @@ namespace TradeApp.Api.Controllers
 
         // PUT: api/Tag/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] AddTagRequest request)
+        public IActionResult Put(int id, [FromBody] TagDto request)
         {
-            //var (exist, id) = _widgetService.CheckIfTagExists(request);
+            if (id != request.Id)
+            {
+                return BadRequest();
+            }
+
+            var existingTag = _context.Tags.Find(id);
+
+            if (existingTag == null)
+            {
+                return NotFound();
+            }
+
+            var (exist, tagId) = _widgetService.CheckIfTagExists(request);
+
+            if (exist)
+            {
+                return Conflict($"There is already Tag with same filters that named {tagId}.");
+            }
+
+            _widgetService.UpdateTag(request);
+
+            return Ok();
         }
 
-        // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
+            var tag = _context.Tags.Find(id);
+
+            if (tag == null)
+            {
+                return NotFound();
+            }
+
+            _context.Tags.Remove(tag);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+        //TODO : temp endpoints for mvc
+
+        [HttpPut("v2/{id}")]
+        public async Task<IActionResult> PutTagv2(int id, Tag tag)
+        {
+            if (id != tag.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(tag).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TagExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        [HttpPost("v2")]
+        public async Task<ActionResult<Tag>> PostTagv2(Tag tag)
+        {
+            _context.Tags.Add(tag);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("Get", new { id = tag.Id }, tag);
+        }
+
+        [HttpDelete("v2/{id}")]
+        public async Task<ActionResult<Tag>> DeleteTagv2(int id)
+        {
+            var tag = await _context.Tags.FindAsync(id);
+            if (tag == null)
+            {
+                return NotFound();
+            }
+
+            _context.Tags.Remove(tag);
+            await _context.SaveChangesAsync();
+
+            return tag;
+        }
+
+        private bool TagExists(int id)
+        {
+            return _context.Tags.Any(e => e.Id == id);
         }
     }
 }
