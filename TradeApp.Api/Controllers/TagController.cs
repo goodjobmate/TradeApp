@@ -33,7 +33,7 @@ namespace TradeApp.Api.Controllers
 
             if (!tags.Any())
             {
-                return NoContent();
+                return NotFound(tags);
             }
 
             return Ok(tags);
