@@ -2,19 +2,28 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TradeApp.Business.BaseMetaModels;
 using TradeApp.Data.Models.BaseMetaDbModels;
 using TradeApp.UI.Models;
+using TradeApp.UI.Options;
 
 namespace TradeApp.UI.Controllers
 {
     public class GroupCrossReferencesController : Controller
     {
+        private readonly IOptions<ApiOptions> _options;
+
+        public GroupCrossReferencesController(IOptions<ApiOptions> options)
+        {
+            _options = options;
+        }
+
         // GET: GroupCrossReferences
         public IActionResult Index()
         {
             var response =
-                ApiConsumer.Get<List<GroupCrossReference>>("https://localhost:44305/api/Group/details");
+                ApiConsumer.Get<List<GroupCrossReference>>(_options.Value.ApiUrl + "Group/details");
 
             var viewModel = new List<GroupCrossReferenceViewModel>();
 
@@ -43,7 +52,7 @@ namespace TradeApp.UI.Controllers
             }
 
             var response =
-                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}/detail");
+                ApiConsumer.Get<GroupCrossReference>(_options.Value.ApiUrl + $"Group/{id}/detail");
 
             if (response.Data == null)
             {
@@ -66,7 +75,7 @@ namespace TradeApp.UI.Controllers
         public IActionResult Create()
         {
             var crossReferenceResponse =
-                ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference/details");
+                ApiConsumer.Get<List<CrossReference>>(_options.Value.ApiUrl + "CrossReference/details");
 
             var selectListDataSource = new List<GroupCrossReferenceViewModel>();
 
@@ -103,13 +112,13 @@ namespace TradeApp.UI.Controllers
                 };
 
                 ApiConsumer.Post<CrossReference>(groupCrossReference,
-                    "https://localhost:44305/api/Group");
+                    _options.Value.ApiUrl + "Group");
 
                 return RedirectToAction(nameof(Index));
             }
 
             var crossReferenceResponse =
-                ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference/details");
+                ApiConsumer.Get<List<CrossReference>>(_options.Value.ApiUrl + "CrossReference/details");
 
             var selectListDataSource = new List<GroupCrossReferenceViewModel>();
 
@@ -141,14 +150,14 @@ namespace TradeApp.UI.Controllers
             }
 
             var gcr =
-                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}/detail");
+                ApiConsumer.Get<GroupCrossReference>(_options.Value.ApiUrl + $"Group/{id}/detail");
 
             var crossReference = gcr.Data.CrossReference;
 
             var serverId = crossReference.ServerId;
 
             var relatedCrossReferences =
-                ApiConsumer.Get<List<CrossReference>>($"https://localhost:44305/api/CrossReference/Server/{serverId}");
+                ApiConsumer.Get<List<CrossReference>>(_options.Value.ApiUrl + $"CrossReference/Server/{serverId}");
 
             var selectListDataSource = new List<GroupCrossReferenceViewModel>();
 
@@ -199,7 +208,7 @@ namespace TradeApp.UI.Controllers
                 {
                     var response =
                         ApiConsumer.Get<CrossReference>(
-                            $"https://localhost:44305/api/CrossReference/{groupCrossReference.CrossReferenceId}");
+                            _options.Value.ApiUrl + $"CrossReference/{groupCrossReference.CrossReferenceId}");
 
                     if (response.Data == null)
                     {
@@ -211,7 +220,7 @@ namespace TradeApp.UI.Controllers
                         CrossReferenceId = response.Data.Id, GroupName = groupCrossReference.Name, Id = id
                     };
 
-                    ApiConsumer.Put<GroupCrossReference>(updatedGcr, $"https://localhost:44305/api/Group/{id}");
+                    ApiConsumer.Put<GroupCrossReference>(updatedGcr, _options.Value.ApiUrl + $"Group/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -227,14 +236,14 @@ namespace TradeApp.UI.Controllers
             }
 
             var gcr =
-                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}/detail");
+                ApiConsumer.Get<GroupCrossReference>(_options.Value.ApiUrl + $"Group/{id}/detail");
 
             var crossReference = gcr.Data.CrossReference;
 
             var serverId = crossReference.ServerId;
 
             var relatedCrossReferences =
-                ApiConsumer.Get<List<CrossReference>>($"https://localhost:44305/api/CossReference/Server/{serverId}");
+                ApiConsumer.Get<List<CrossReference>>(_options.Value.ApiUrl + $"CossReference/Server/{serverId}");
 
             var selectListDataSource = new List<GroupCrossReferenceViewModel>();
 
@@ -276,7 +285,7 @@ namespace TradeApp.UI.Controllers
             }
 
             var response =
-                ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}");
+                ApiConsumer.Get<GroupCrossReference>(_options.Value.ApiUrl + $"Group/{id}");
             if (response.Data == null)
             {
                 return NotFound();
@@ -291,13 +300,13 @@ namespace TradeApp.UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            ApiConsumer.Delete<GroupCrossReference>($"https://localhost:44305/api/Group/{id}");
+            ApiConsumer.Delete<GroupCrossReference>(_options.Value.ApiUrl + $"Group/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool GroupCrossReferenceExists(int id)
         {
-            return ApiConsumer.Get<GroupCrossReference>($"https://localhost:44305/api/Group/{id}").Data !=
+            return ApiConsumer.Get<GroupCrossReference>(_options.Value.ApiUrl + $"Group/{id}").Data !=
                    null;
         }
     }

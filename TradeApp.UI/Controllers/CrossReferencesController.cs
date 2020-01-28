@@ -2,23 +2,32 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TradeApp.Data.Contexts;
 using TradeApp.Data.Models.BaseMetaDbModels;
+using TradeApp.UI.Options;
 
 namespace TradeApp.UI.Controllers
 {
     public class CrossReferencesController : Controller
     {
+        private readonly IOptions<ApiOptions> _options;
+
+        public CrossReferencesController(IOptions<ApiOptions> options)
+        {
+            _options = options;
+        }
+
         // GET: CrossReferences
         public IActionResult Index()
         {
-            var response = ApiConsumer.Get<List<CrossReference>>("https://localhost:44305/api/CrossReference");
+            var response = ApiConsumer.Get<List<CrossReference>>(_options.Value.ApiUrl + "CrossReference");
 
             foreach (var crossReference in response.Data)
             {
                 var detail =
                     ApiConsumer.Get<CrossReference>(
-                        $"https://localhost:44305/api/CrossReference/{crossReference.Id}/detail");
+                        _options.Value.ApiUrl + $"CrossReference/{crossReference.Id}/detail");
 
                 crossReference.Server = detail.Data.Server;
                 crossReference.Regulation = detail.Data.Regulation;
@@ -38,7 +47,7 @@ namespace TradeApp.UI.Controllers
             }
 
             var response =
-                ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}/detail");
+                ApiConsumer.Get<CrossReference>(_options.Value.ApiUrl + $"CrossReference/{id}/detail");
 
             if (response.Data == null)
             {
@@ -51,10 +60,10 @@ namespace TradeApp.UI.Controllers
         // GET: CrossReferences/Create
         public IActionResult Create()
         {
-            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
-            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
-            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
-            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+            var server = ApiConsumer.Get<List<Server>>(_options.Value.ApiUrl + "server");
+            var regulation = ApiConsumer.Get<List<Regulation>>(_options.Value.ApiUrl + "regulation");
+            var branch = ApiConsumer.Get<List<Branch>>(_options.Value.ApiUrl + "branch");
+            var company = ApiConsumer.Get<List<Company>>(_options.Value.ApiUrl + "company");
 
             ViewData["BranchId"] = new SelectList(branch.Data, "Id", "Name");
             ViewData["CompanyId"] = new SelectList(company.Data, "Id", "Name");
@@ -74,14 +83,14 @@ namespace TradeApp.UI.Controllers
         {
             if (ModelState.IsValid)
             {
-                ApiConsumer.Post<Branch>(crossReference, "https://localhost:44305/api/CrossReference");
+                ApiConsumer.Post<Branch>(crossReference, _options.Value.ApiUrl + "CrossReference");
                 return RedirectToAction(nameof(Index));
             }
 
-            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
-            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
-            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
-            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+            var server = ApiConsumer.Get<List<Server>>(_options.Value.ApiUrl + "server");
+            var regulation = ApiConsumer.Get<List<Regulation>>(_options.Value.ApiUrl + "regulation");
+            var branch = ApiConsumer.Get<List<Branch>>(_options.Value.ApiUrl + "branch");
+            var company = ApiConsumer.Get<List<Company>>(_options.Value.ApiUrl + "company");
 
             ViewData["BranchId"] = new SelectList(branch.Data, "Id", "Name", crossReference.BranchId);
             ViewData["CompanyId"] = new SelectList(company.Data, "Id", "Name", crossReference.CompanyId);
@@ -100,17 +109,17 @@ namespace TradeApp.UI.Controllers
 
 
             var response =
-                ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}");
+                ApiConsumer.Get<CrossReference>(_options.Value.ApiUrl + $"CrossReference/{id}");
 
             if (response.Data == null)
             {
                 return NotFound();
             }
 
-            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
-            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
-            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
-            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+            var server = ApiConsumer.Get<List<Server>>(_options.Value.ApiUrl + "server");
+            var regulation = ApiConsumer.Get<List<Regulation>>(_options.Value.ApiUrl + "regulation");
+            var branch = ApiConsumer.Get<List<Branch>>(_options.Value.ApiUrl + "branch");
+            var company = ApiConsumer.Get<List<Company>>(_options.Value.ApiUrl + "company");
 
             ViewData["BranchId"] = new SelectList(branch.Data, "Id", "Name", response.Data.BranchId);
             ViewData["CompanyId"] = new SelectList(company.Data, "Id", "Name", response.Data.CompanyId);
@@ -136,7 +145,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    ApiConsumer.Put<Branch>(crossReference, $"https://localhost:44305/api/CrossReference/{id}");
+                    ApiConsumer.Put<Branch>(crossReference, _options.Value.ApiUrl + $"CrossReference/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -152,12 +161,12 @@ namespace TradeApp.UI.Controllers
             }
 
             var response =
-                ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}");
+                ApiConsumer.Get<CrossReference>(_options.Value.ApiUrl + $"CrossReference/{id}");
 
-            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
-            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
-            var branch = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
-            var company = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+            var server = ApiConsumer.Get<List<Server>>(_options.Value.ApiUrl + "server");
+            var regulation = ApiConsumer.Get<List<Regulation>>(_options.Value.ApiUrl + "regulation");
+            var branch = ApiConsumer.Get<List<Branch>>(_options.Value.ApiUrl + "branch");
+            var company = ApiConsumer.Get<List<Company>>(_options.Value.ApiUrl + "company");
 
             ViewData["BranchId"] = new SelectList(branch.Data, "Id", "Name", response.Data.BranchId);
             ViewData["CompanyId"] = new SelectList(company.Data, "Id", "Name", response.Data.CompanyId);
@@ -176,7 +185,7 @@ namespace TradeApp.UI.Controllers
             }
 
             var response =
-                ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}/detail");
+                ApiConsumer.Get<CrossReference>(_options.Value.ApiUrl + $"CrossReference/{id}/detail");
 
             if (response.Data == null)
             {
@@ -192,13 +201,13 @@ namespace TradeApp.UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            ApiConsumer.Delete<CrossReference>($"https://localhost:44305/api/CrossReference/{id}");
+            ApiConsumer.Delete<CrossReference>(_options.Value.ApiUrl + $"CrossReference/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool CrossReferenceExists(int id)
         {
-            return ApiConsumer.Get<CrossReference>($"https://localhost:44305/api/CrossReference/{id}").Data != null;
+            return ApiConsumer.Get<CrossReference>(_options.Value.ApiUrl + $"CrossReference/{id}").Data != null;
         }
     }
 }

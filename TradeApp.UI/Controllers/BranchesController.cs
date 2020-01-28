@@ -1,17 +1,24 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TradeApp.Data.Contexts;
 using TradeApp.Data.Models.BaseMetaDbModels;
+using TradeApp.UI.Options;
 
 namespace TradeApp.UI.Controllers
 {
     public class BranchesController : Controller
     {
+        private readonly IOptions<ApiOptions> _options;
+        public BranchesController(IOptions<ApiOptions> options)
+        {
+            _options = options;
+        }
         // GET: Branches
         public IActionResult Index()
         {
-            var response = ApiConsumer.Get<List<Branch>>("https://localhost:44305/api/branch");
+            var response = ApiConsumer.Get<List<Branch>>(_options.Value.ApiUrl + "branch");
 
             return View(response.Data);
         }
@@ -24,7 +31,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Branch>($"https://localhost:44305/api/branch/{id}");
+            var response = ApiConsumer.Get<Branch>(_options.Value.ApiUrl + $"branch/{id}");
             if (response.Data == null)
             {
                 return NotFound();
@@ -48,7 +55,7 @@ namespace TradeApp.UI.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = ApiConsumer.Post<Branch>(branch, "https://localhost:44305/api/branch");
+                var response = ApiConsumer.Post<Branch>(branch, _options.Value.ApiUrl + "branch");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -63,7 +70,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Branch>($"https://localhost:44305/api/branch/{id}");
+            var response = ApiConsumer.Get<Branch>(_options.Value.ApiUrl + $"branch/{id}");
             if (response == null)
             {
                 return NotFound();
@@ -88,7 +95,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    var response = ApiConsumer.Put<Branch>(branch, $"https://localhost:44305/api/branch/{id}");
+                    var response = ApiConsumer.Put<Branch>(branch, _options.Value.ApiUrl + $"branch/{id}");
                     branch = response.Data;
                 }
                 catch (DbUpdateConcurrencyException)
@@ -115,7 +122,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Branch>($"https://localhost:44305/api/branch/{id}");
+            var response = ApiConsumer.Get<Branch>(_options.Value.ApiUrl + $"branch/{id}");
 
 
             if (response.Data == null)
@@ -132,13 +139,13 @@ namespace TradeApp.UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var response = ApiConsumer.Delete<Branch>($"https://localhost:44305/api/branch/{id}");
+            var response = ApiConsumer.Delete<Branch>(_options.Value.ApiUrl + $"branch/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool BranchExists(int id)
         {
-            return ApiConsumer.Get<Branch>($"https://localhost:44305/api/Branch/{id}").Data != null;
+            return ApiConsumer.Get<Branch>(_options.Value.ApiUrl + $"Branch/{id}").Data != null;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.IO;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TradeApp.Data.Contexts;
+using TradeApp.UI.Options;
 
 namespace TradeApp.UI
 {
@@ -15,6 +17,13 @@ namespace TradeApp.UI
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+
+            var configBuilder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true);
+
+            configBuilder.Build();
         }
 
         public IConfiguration Configuration { get; }
@@ -31,11 +40,8 @@ namespace TradeApp.UI
 
             services.AddControllersWithViews();
 
-            services.AddDbContext<BaseMetaDbContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("BaseMetaDbContext")));
+            services.Configure<ApiOptions>(Configuration.GetSection("Api"));
 
-            services.AddDbContext<TradeDbContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("TradeDbContext")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

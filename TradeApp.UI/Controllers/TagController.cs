@@ -5,20 +5,29 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TradeApp.Business.WidgetModels;
 using TradeApp.Data.Contexts;
 using TradeApp.Data.Models.BaseMetaDbModels;
 using TradeApp.Data.Models.TradeDbModels;
 using TradeApp.UI.Models;
+using TradeApp.UI.Options;
 
 namespace TradeApp.UI.Controllers
 {
     public class TagController : Controller
     {
+        private readonly IOptions<ApiOptions> _options;
+
+        public TagController(IOptions<ApiOptions> options)
+        {
+            _options = options;
+        }
+
         public IActionResult Index()
         {
-            var server = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
-            var regulation = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
+            var server = ApiConsumer.Get<List<Server>>(_options.Value.ApiUrl + "server");
+            var regulation = ApiConsumer.Get<List<Regulation>>(_options.Value.ApiUrl + "regulation");
 
             ViewData["RegulationId"] = new SelectList(regulation.Data, "Id", "Name");
             ViewData["ServerId"] = new SelectList(server.Data, "Id", "Name");
@@ -30,7 +39,7 @@ namespace TradeApp.UI.Controllers
         {
             var response =
                 ApiConsumer.Get<IEnumerable<ResultDto>>(
-                    $"https://localhost:44305/api/tag?serverId={request.ServerId}&regulationId={request.RegulationId}");
+                    _options.Value.ApiUrl + $"tag?serverId={request.ServerId}&regulationId={request.RegulationId}");
 
             return View(response.Data);
         }
@@ -45,7 +54,7 @@ namespace TradeApp.UI.Controllers
 
             var response =
                 ApiConsumer.Get<Tag>(
-                    $"https://localhost:44305/api/tag/{id}");
+                    _options.Value.ApiUrl + $"tag/{id}");
 
             if (response.Data == null)
             {
@@ -71,7 +80,7 @@ namespace TradeApp.UI.Controllers
             if (ModelState.IsValid)
             {
                 var response =
-                    ApiConsumer.Post<Tag>(tag, "https://localhost:44305/api/tag/v2");
+                    ApiConsumer.Post<Tag>(tag, _options.Value.ApiUrl + "tag/v2");
                 return RedirectToAction(nameof(Index));
             }
             return View(tag);
@@ -87,7 +96,7 @@ namespace TradeApp.UI.Controllers
 
             var response =
                 ApiConsumer.Get<Tag>(
-                    $"https://localhost:44305/api/tag/{id}");
+                    _options.Value.ApiUrl + $"tag/{id}");
 
             if (response.Data == null)
             {
@@ -113,7 +122,7 @@ namespace TradeApp.UI.Controllers
                 try
                 {
                     var response =
-                        ApiConsumer.Put<Tag>(tag, "https://localhost:44305/api/tag/v2");
+                        ApiConsumer.Put<Tag>(tag, _options.Value.ApiUrl + "tag/v2");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -134,7 +143,7 @@ namespace TradeApp.UI.Controllers
 
             var response =
                 ApiConsumer.Get<Tag>(
-                    $"https://localhost:44305/api/tag/{id}");
+                    _options.Value.ApiUrl + $"tag/{id}");
 
             if (response.Data == null)
             {
@@ -151,7 +160,7 @@ namespace TradeApp.UI.Controllers
         {
             var response =
                 ApiConsumer.Delete<Tag>(
-                    $"https://localhost:44305/api/tag/v2/{id}");
+                    _options.Value.ApiUrl + $"tag/v2/{id}");
             return RedirectToAction(nameof(Index));
         }
     }

@@ -1,17 +1,26 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TradeApp.Data.Contexts;
 using TradeApp.Data.Models.BaseMetaDbModels;
+using TradeApp.UI.Options;
 
 namespace TradeApp.UI.Controllers
 {
     public class RegulationsController : Controller
     {
+        private readonly IOptions<ApiOptions> _options;
+
+        public RegulationsController(IOptions<ApiOptions> options)
+        {
+            _options = options;
+        }
+
         // GET: Regulations
         public IActionResult Index()
         {
-            var response = ApiConsumer.Get<List<Regulation>>("https://localhost:44305/api/regulation");
+            var response = ApiConsumer.Get<List<Regulation>>(_options.Value.ApiUrl + "regulation");
             return View(response.Data);
         }
 
@@ -23,7 +32,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Regulation>($"https://localhost:44305/api/regulation/{id}");
+            var response = ApiConsumer.Get<Regulation>(_options.Value.ApiUrl + $"regulation/{id}");
             if (response.Data == null)
             {
                 return NotFound();
@@ -47,7 +56,7 @@ namespace TradeApp.UI.Controllers
         {
             if (ModelState.IsValid)
             {
-                ApiConsumer.Post<Regulation>(regulation, "https://localhost:44305/api/regulation");
+                ApiConsumer.Post<Regulation>(regulation, _options.Value.ApiUrl + "regulation");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -62,7 +71,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Regulation>($"https://localhost:44305/api/regulation/{id}");
+            var response = ApiConsumer.Get<Regulation>(_options.Value.ApiUrl + $"regulation/{id}");
             if (response.Data == null)
             {
                 return NotFound();
@@ -87,7 +96,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    ApiConsumer.Put<List<Regulation>>(regulation, "https://localhost:44305/api/regulation/{id}");
+                    ApiConsumer.Put<List<Regulation>>(regulation, _options.Value.ApiUrl + "regulation/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -113,7 +122,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Regulation>($"https://localhost:44305/api/regulation/{id}");
+            var response = ApiConsumer.Get<Regulation>(_options.Value.ApiUrl + $"regulation/{id}");
             if (response.Data == null)
             {
                 return NotFound();
@@ -128,13 +137,13 @@ namespace TradeApp.UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            ApiConsumer.Delete<Regulation>($"https://localhost:44305/api/regulation/{id}");
+            ApiConsumer.Delete<Regulation>(_options.Value.ApiUrl + $"regulation/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool RegulationExists(int id)
         {
-            return ApiConsumer.Get<Regulation>($"https://localhost:44305/api/Regulation/{id}").Data != null;
+            return ApiConsumer.Get<Regulation>(_options.Value.ApiUrl + $"Regulation/{id}").Data != null;
         }
     }
 }

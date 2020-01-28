@@ -1,17 +1,26 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TradeApp.Data.Contexts;
 using TradeApp.Data.Models.BaseMetaDbModels;
+using TradeApp.UI.Options;
 
 namespace TradeApp.UI.Controllers
 {
     public class ServerController : Controller
     {
+        private readonly IOptions<ApiOptions> _options;
+
+        public ServerController(IOptions<ApiOptions> options)
+        {
+            _options = options;
+        }
+
         // GET: Server
         public IActionResult Index()
         {
-            var response = ApiConsumer.Get<List<Server>>("https://localhost:44305/api/server");
+            var response = ApiConsumer.Get<List<Server>>(_options.Value.ApiUrl + "server");
             return View(response.Data);
         }
 
@@ -23,7 +32,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Server>($"https://localhost:44305/api/server/{id}");
+            var response = ApiConsumer.Get<Server>(_options.Value.ApiUrl + $"server/{id}");
             if (response.Data == null)
             {
                 return NotFound();
@@ -48,7 +57,7 @@ namespace TradeApp.UI.Controllers
         {
             if (ModelState.IsValid)
             {
-                ApiConsumer.Post<Server>(server, "https://localhost:44305/api/server");
+                ApiConsumer.Post<Server>(server, _options.Value.ApiUrl + "server");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -63,7 +72,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Server>($"https://localhost:44305/api/server/{id}");
+            var response = ApiConsumer.Get<Server>(_options.Value.ApiUrl + $"server/{id}");
             if (response.Data == null)
             {
                 return NotFound();
@@ -90,7 +99,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    ApiConsumer.Put<Server>(server, $"https://localhost:44305/api/server/{id}");
+                    ApiConsumer.Put<Server>(server, _options.Value.ApiUrl + $"server/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -116,7 +125,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Server>($"https://localhost:44305/api/server/{id}");
+            var response = ApiConsumer.Get<Server>(_options.Value.ApiUrl + $"server/{id}");
             if (response.Data == null)
             {
                 return NotFound();
@@ -131,13 +140,13 @@ namespace TradeApp.UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            ApiConsumer.Delete<Server>($"https://localhost:44305/api/server/{id}");
+            ApiConsumer.Delete<Server>(_options.Value.ApiUrl + $"server/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool ServerExists(int id)
         {
-            return ApiConsumer.Get<Server>($"https://localhost:44305/api/Server/{id}").Data != null;
+            return ApiConsumer.Get<Server>(_options.Value.ApiUrl + $"Server/{id}").Data != null;
         }
     }
 }

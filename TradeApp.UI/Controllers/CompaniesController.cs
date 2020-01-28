@@ -1,16 +1,25 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TradeApp.Data.Models.BaseMetaDbModels;
+using TradeApp.UI.Options;
 
 namespace TradeApp.UI.Controllers
 {
     public class CompaniesController : Controller
     {
+        private readonly IOptions<ApiOptions> _options;
+
+        public CompaniesController(IOptions<ApiOptions> options)
+        {
+            _options = options;
+        }
+
         // GET: Companies
         public IActionResult Index()
         {
-            var response = ApiConsumer.Get<List<Company>>("https://localhost:44305/api/company");
+            var response = ApiConsumer.Get<List<Company>>(_options.Value.ApiUrl + "company");
             return View(response.Data);
         }
 
@@ -22,7 +31,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Company>($"https://localhost:44305/api/company/{id}");
+            var response = ApiConsumer.Get<Company>(_options.Value.ApiUrl + $"company/{id}");
 
             if (response.Data == null)
             {
@@ -47,7 +56,7 @@ namespace TradeApp.UI.Controllers
         {
             if (ModelState.IsValid)
             {
-                ApiConsumer.Post<Company>(company, "https://localhost:44305/api/company");
+                ApiConsumer.Post<Company>(company, _options.Value.ApiUrl + "company");
 
                 return RedirectToAction(nameof(Index));
             }
@@ -63,7 +72,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Company>($"https://localhost:44305/api/company/{id}");
+            var response = ApiConsumer.Get<Company>(_options.Value.ApiUrl + $"company/{id}");
             if (response.Data == null)
             {
                 return NotFound();
@@ -88,7 +97,7 @@ namespace TradeApp.UI.Controllers
             {
                 try
                 {
-                    ApiConsumer.Put<Company>(company, $"https://localhost:44305/api/company/{id}");
+                    ApiConsumer.Put<Company>(company, _options.Value.ApiUrl + $"company/{id}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -114,7 +123,7 @@ namespace TradeApp.UI.Controllers
                 return NotFound();
             }
 
-            var response = ApiConsumer.Get<Company>($"https://localhost:44305/api/company/{id}");
+            var response = ApiConsumer.Get<Company>(_options.Value.ApiUrl + $"company/{id}");
 
             if (response.Data == null)
             {
@@ -130,13 +139,13 @@ namespace TradeApp.UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            ApiConsumer.Delete<Company>($"https://localhost:44305/api/company/{id}");
+            ApiConsumer.Delete<Company>(_options.Value.ApiUrl + $"company/{id}");
             return RedirectToAction(nameof(Index));
         }
 
         private bool CompanyExists(int id)
         {
-            return ApiConsumer.Get<Company>($"https://localhost:44305/api/Company/{id}").Data != null;
+            return ApiConsumer.Get<Company>(_options.Value.ApiUrl + $"Company/{id}").Data != null;
         }
     }
 }
