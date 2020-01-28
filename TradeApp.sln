@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradeApp.Data", "TradeApp.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradeApp.UI", "TradeApp.UI\TradeApp.UI.csproj", "{ABB4440F-5DF2-4AEC-AA90-A9945DFA8147}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeApp.Api", "TradeApp.Api\TradeApp.Api.csproj", "{9FE17475-E957-4E56-9F77-6F3F3AE1A369}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradeApp.Api", "TradeApp.Api\TradeApp.Api.csproj", "{9FE17475-E957-4E56-9F77-6F3F3AE1A369}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeApp.Business", "TradeApp.Business\TradeApp.Business.csproj", "{9AC5FC66-81D4-4510-9D04-A4F0D1729769}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradeApp.Business", "TradeApp.Business\TradeApp.Business.csproj", "{9AC5FC66-81D4-4510-9D04-A4F0D1729769}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeApp.Redis", "TradeApp.Redis\TradeApp.Redis.csproj", "{12BF207F-BC6A-4C88-AE17-4E379F3515CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{9AC5FC66-81D4-4510-9D04-A4F0D1729769}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9AC5FC66-81D4-4510-9D04-A4F0D1729769}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9AC5FC66-81D4-4510-9D04-A4F0D1729769}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12BF207F-BC6A-4C88-AE17-4E379F3515CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12BF207F-BC6A-4C88-AE17-4E379F3515CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12BF207F-BC6A-4C88-AE17-4E379F3515CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12BF207F-BC6A-4C88-AE17-4E379F3515CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
