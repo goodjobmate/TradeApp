@@ -7,16 +7,19 @@ using TradeApp.Business.Services.Interfaces;
 using TradeApp.Business.WidgetModels;
 using TradeApp.Data.Contexts;
 using TradeApp.Data.Models.TradeDbModels;
+using TradeApp.Redis;
 
 namespace TradeApp.Business.Services
 {
     public class WidgetService : IWidgetService
     {
         private readonly TradeDbContext _context;
+        private readonly RedisCache _redisDb;
 
         public WidgetService(TradeDbContext context)
         {
             _context = context;
+            _redisDb = new RedisCache(10);
         }
 
         public UserWidgetDto GetWidget(int userDashboardId)
@@ -115,21 +118,21 @@ namespace TradeApp.Business.Services
             }
 
             foreach (var item in from lgDto in userDashboardWidget.Item.Lg.ToList()
-                let widgetName = userDashboardWidget.Widget.FirstOrDefault(w => w.IndexId == Convert.ToInt32(lgDto.I))
-                    ?.Name
-                let widgetId = _context.Widget.SingleOrDefault(x => x.Name == widgetName)?.Id
-                select new UserDashboardWidget
-                {
-                    CreatedAt = DateTime.Now,
-                    CreatedById = userId,
-                    Height = lgDto.H,
-                    Width = lgDto.W,
-                    XAxis = lgDto.X,
-                    YAxis = lgDto.Y,
-                    UserDashboardId = userDashboardId,
-                    WidgetId = widgetId,
-                    Index = lgDto.I
-                })
+                                 let widgetName = userDashboardWidget.Widget.FirstOrDefault(w => w.IndexId == Convert.ToInt32(lgDto.I))
+                                     ?.Name
+                                 let widgetId = _context.Widget.SingleOrDefault(x => x.Name == widgetName)?.Id
+                                 select new UserDashboardWidget
+                                 {
+                                     CreatedAt = DateTime.Now,
+                                     CreatedById = userId,
+                                     Height = lgDto.H,
+                                     Width = lgDto.W,
+                                     XAxis = lgDto.X,
+                                     YAxis = lgDto.Y,
+                                     UserDashboardId = userDashboardId,
+                                     WidgetId = widgetId,
+                                     Index = lgDto.I
+                                 })
             {
                 _context.UserDashboardWidget.Add(item);
                 _context.SaveChanges();
@@ -281,6 +284,111 @@ namespace TradeApp.Business.Services
             }
 
             return (jFilter, jLogins);
+        }
+
+        public int CreateUserDashboardWidgetFilter(int userId, WidgetFilterDto widgetFilterDto)
+        {
+
+            var existingUserDashboardWidget = _context.UserDashboardWidget.Include(w => w.Widget).FirstOrDefault(w =>
+               w.Id == widgetFilterDto.UserDashboardWidgetId && w.WidgetId != null);
+
+
+            if (existingUserDashboardWidget == null)
+                return 0;
+
+            foreach (var filterSet in widgetFilterDto.Filters)
+            {
+                var str = JsonConvert.SerializeObject(filterSet.FilterSet, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                var existingFilter = _context.Filter.FirstOrDefault(f => f.Key == str);
+
+                var filterId = existingFilter?.Id ?? 0;
+                if (existingFilter == null)
+                {
+                    var filter = new Filter
+                    {
+                        CreatedAt = DateTime.Now,
+                        CreatedById = userId,
+                        Key = str
+                    };
+                    _context.Filter.Add(filter);
+                    _context.SaveChanges();
+                    filterId = filter.Id;
+                }
+                var redisKey = existingUserDashboardWidget.Widget.Type.ToString();
+                if (!_redisDb.HashGetAll(redisKey).FirstOrDefault(r => r.Name == str).Value.HasValue)
+                    _redisDb.WriteAndUpdate(redisKey, str, 0);//todo
+
+                continue;
+
+                var existingUserDashboardWidgetFilter = _context.UserDashboardWidgetFilter.FirstOrDefault(d =>
+                    d.FilterId == filterId && d.UserDashboardWidgetId == existingUserDashboardWidget.Id);
+                if (existingUserDashboardWidgetFilter != null)
+                    continue;
+
+                var userDashboardWidgetFilter = new UserDashboardWidgetFilter
+                {
+                    FilterId = filterId,
+                    CreatedAt = DateTime.Now,
+                    CreatedById = userId,
+                    UserDashboardWidgetId = existingUserDashboardWidget.Id,
+                    Name = filterSet.Name
+                };
+                _context.UserDashboardWidgetFilter.Add(userDashboardWidgetFilter);
+                _context.SaveChanges();
+            }
+            existingUserDashboardWidget.ModifiedById = userId;
+            existingUserDashboardWidget.ModifiedAt = DateTime.Now;
+            _context.UserDashboardWidget.Update(existingUserDashboardWidget);
+            _context.SaveChanges();
+            return existingUserDashboardWidget.Id;
+
+        }
+
+
+        public List<FilterResultDto> GetUserDashboardWidgetFilter(int userDashboardWidgetId)
+        {
+            var existingUserDashboardWidget = _context.UserDashboardWidget.Include(d =>
+                d.Widget).FirstOrDefault(d => d.Id == userDashboardWidgetId && d.WidgetId != null);
+            if (existingUserDashboardWidget == null)
+                return null;
+
+            var filters = _context.UserDashboardWidgetFilter.Where(f => f.UserDashboardWidgetId == existingUserDashboardWidget.Id).Include(f => f.Filter);
+
+            var redisKey = existingUserDashboardWidget.Widget.Type.ToString();
+            var result = _redisDb.HashGetAll(redisKey);
+            var resultList = new List<FilterResultDto>();
+            foreach (var filter in filters)
+            {
+                resultList.Add(new FilterResultDto()
+                {
+                    Value = result?.FirstOrDefault(r => r.Name == filter.Filter.Key).Value,
+                    Name = filter.Name
+                });
+            }
+            return resultList;
+        }
+
+        public List<ExposureFilterResultDto> GetExposureUserDashboardWidgetFilter(int userDashboardWidgetId)
+        {
+            var existingUserDashboardWidget = _context.UserDashboardWidget.Include(d =>
+                d.Widget).FirstOrDefault(d => d.Id == userDashboardWidgetId && d.WidgetId != null);
+            if (existingUserDashboardWidget == null)
+                return null;
+
+            var filters = _context.UserDashboardWidgetFilter.Where(f => f.UserDashboardWidgetId == existingUserDashboardWidget.Id).Include(f => f.Filter);
+
+            var redisKey = existingUserDashboardWidget.Widget.Type.ToString();
+            var result = _redisDb.HashGetAll(redisKey);
+            var resultList = new List<ExposureFilterResultDto>();
+            foreach (var filter in filters)
+            {
+                resultList.Add(new ExposureFilterResultDto()
+                {
+                    Value = JsonConvert.DeserializeObject<List<ExposureResultDto>>(result?.FirstOrDefault(r => r.Name == filter.Filter.Key).Value),
+                    Name = filter.Name
+                });
+            }
+            return resultList;
         }
     }
 }

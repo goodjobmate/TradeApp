@@ -15,5 +15,8 @@ namespace TradeApp.Business.Services.Interfaces
         List<ResultDto> GetTagsWithServerAndRegulation(int? serverId, int? regulationId);
         void UpdateTag(TagDto dto);
         TagDto GetTagById(int id);
+        int CreateUserDashboardWidgetFilter(int userId, WidgetFilterDto widgetFilterDto);
+        List<FilterResultDto> GetUserDashboardWidgetFilter(int userDashboardWidgetId);
+        List<ExposureFilterResultDto> GetExposureUserDashboardWidgetFilter(int userDashboardWidgetId);
     }
 }

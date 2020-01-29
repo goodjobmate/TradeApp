@@ -81,5 +81,33 @@ namespace TradeApp.Api.Controllers
             _widgetService.DeleteWidget(widget.PageId);
             return Ok();
         }
+
+
+        #region Filtering Operation
+
+
+        // POST: api/Widget/Filter
+        [HttpPost("Filter")]
+        public ActionResult<int> PostFilter([FromBody] WidgetFilterDto widgetFilterDto)
+        {
+            return Ok(_widgetService.CreateUserDashboardWidgetFilter(UserId, widgetFilterDto));
+        }
+
+
+        // GET: api/Widget/Filter
+        [HttpGet("Filter")]
+        public ActionResult<int> GetFilter(int userDashboardWidgetId)
+        {
+            return Ok(_widgetService.GetUserDashboardWidgetFilter(userDashboardWidgetId));
+        }
+
+        // GET: api/Widget/ExposureFilter
+        [HttpGet("ExposureFilter")]
+        public ActionResult<int> GetExposureFilter(int userDashboardWidgetId)
+        {
+            return Ok(_widgetService.GetExposureUserDashboardWidgetFilter(userDashboardWidgetId));
+        }
+
+        #endregion
     }
 }
