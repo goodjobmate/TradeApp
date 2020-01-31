@@ -29,7 +29,9 @@ namespace TradeApp.UI.Controllers
             var server = ApiConsumer.Get<List<Server>>(_options.Value.ApiUrl + "server");
             var regulation = ApiConsumer.Get<List<Regulation>>(_options.Value.ApiUrl + "regulation");
 
-            ViewData["RegulationId"] = new SelectList(regulation.Data, "Id", "Name");
+            regulation.Data.Add(new Regulation{Id = 0, Name = "Select (optional)"});
+
+            ViewData["RegulationId"] = new SelectList(regulation.Data, "Id", "Name", 0);
             ViewData["ServerId"] = new SelectList(server.Data, "Id", "Name");
 
             return View();
@@ -37,9 +39,10 @@ namespace TradeApp.UI.Controllers
 
         public IActionResult List([Bind("ServerId, RegulationId")] GetTagsRequestViewModel request)
         {
+            var reg = request.RegulationId == 0 ? "" : request.RegulationId.ToString();
             var response =
                 ApiConsumer.Get<IEnumerable<ResultDto>>(
-                    _options.Value.ApiUrl + $"tag?serverId={request.ServerId}&regulationId={request.RegulationId}");
+                    _options.Value.ApiUrl + $"tag?serverId={request.ServerId}&regulationId={reg}");
 
             return View(response.Data);
         }

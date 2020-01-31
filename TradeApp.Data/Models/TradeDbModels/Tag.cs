@@ -4,6 +4,7 @@
     {
         public string Name { get; set; }
         public string Key { get; set; }
-        public string Logins { get; set; }
+        public string IncludedLogins { get; set; }
+        public string ExcludedLogins { get; set; }
     }
 }

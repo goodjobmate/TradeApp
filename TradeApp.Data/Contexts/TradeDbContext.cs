@@ -48,6 +48,7 @@ namespace TradeApp.Data.Contexts
                 {
                     case EntityState.Added:
                         entry.CurrentValues["IsDeleted"] = false;
+                        entry.CurrentValues["CreatedAt"] = DateTime.UtcNow;
                         break;
 
                     case EntityState.Deleted:
@@ -59,6 +60,7 @@ namespace TradeApp.Data.Contexts
                     case EntityState.Unchanged:
                         break;
                     case EntityState.Modified:
+                        entry.CurrentValues["ModifiedAt"] = DateTime.UtcNow;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

@@ -25,6 +25,10 @@ namespace TradeApp.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddCors(o =>
+            {
+                o.AddPolicy("AllowAll", a => { a.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
+            });
 
             services.AddDbContext<TradeDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("TradeDbContext")));
@@ -39,6 +43,8 @@ namespace TradeApp.Api
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "TradeAppApi", Version = "v1"});
             });
+
+            services.AddMvc().AddNewtonsoftJson();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,6 +54,8 @@ namespace TradeApp.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors("AllowAll");
 
             app.UseHttpsRedirection();
 

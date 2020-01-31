@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TradeApp.Data.Models.TradeDbModels;
 
 namespace TradeApp.Business.WidgetModels
 {
@@ -74,12 +75,20 @@ namespace TradeApp.Business.WidgetModels
         {
             ServerIds = new List<int>();
             Groups = new Dictionary<int, List<string>>();
-            Logins = new Dictionary<int, List<int>>();
+            XIds = new List<int>();
+            IncludedLogins = new Dictionary<int, List<int>>();
+            ExcludedLogins = new Dictionary<int, List<int>>();
+            TagIds = new List<int>();
+            OperatorByCalculation = new Dictionary<WidgetType, bool>();
         }
 
         public int? RegulationId { get; set; }
         public List<int> ServerIds { get; set; }
         public Dictionary<int, List<string>> Groups { get; set; }
-        public Dictionary<int, List<int>> Logins { get; set; }
+        public List<int> XIds { get; set; }
+        public Dictionary<int, List<int>> IncludedLogins { get; set; }
+        public Dictionary<int, List<int>> ExcludedLogins { get; set; }
+        public List<int> TagIds { get; set; }
+        public Dictionary<WidgetType, bool> OperatorByCalculation { get; set; }
     }
 }

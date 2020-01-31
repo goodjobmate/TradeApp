@@ -23,9 +23,14 @@
                 <span asp-validation-for="Key" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Logins" class="control-label"></label>
-                <input asp-for="Logins" class="form-control" />
-                <span asp-validation-for="Logins" class="text-danger"></span>
+                <label asp-for="IncludedLogins" class="control-label"></label>
+                <input asp-for="IncludedLogins" class="form-control" />
+                <span asp-validation-for="IncludedLogins" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ExcludedLogins" class="control-label"></label>
+                <input asp-for="ExcludedLogins" class="form-control" />
+                <span asp-validation-for="ExcludedLogins" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

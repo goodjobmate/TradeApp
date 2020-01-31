@@ -163,13 +163,14 @@ namespace TradeApp.Business.Services
 
         public int CreateTag(TagDto dto)
         {
-            var (tagFilterJson, tagLoginsJson) = GetTagAsJson(dto);
+            var (tagFilterJson, tagIncludedLoginsJson, tagExcludedLoginsJson) = GetTagAsJson(dto);
 
             var tag = new Tag
             {
                 Key = tagFilterJson,
                 Name = dto.Name,
-                Logins = tagLoginsJson
+                IncludedLogins = tagIncludedLoginsJson,
+                ExcludedLogins = tagExcludedLoginsJson
             };
 
             _context.Tags.Add(tag);
@@ -180,13 +181,12 @@ namespace TradeApp.Business.Services
 
         public (bool exist, int id) CheckIfTagExists(TagDto dto)
         {
-            var (jFilter, jLogins) = GetTagAsJson(dto);
+            var (jFilter, jIncludedLogins, jExcludedLogins) = GetTagAsJson(dto);
 
             var existingTag =
-                _context.Tags.FirstOrDefault(f =>
-                    string.Equals(f.Key, jFilter) && string.Equals(f.Logins, jLogins));
+                _context.Tags.FirstOrDefault(f => string.Equals(f.Key, jFilter) && string.Equals(f.IncludedLogins, jIncludedLogins) && string.Equals(f.ExcludedLogins, jExcludedLogins));
 
-            return (existingTag == null, existingTag?.Id ?? 0);
+            return (existingTag != null, existingTag?.Id ?? 0);
         }
 
         public List<ResultDto> GetTagsWithServerAndRegulation(int? serverId, int? regulationId)
@@ -236,11 +236,12 @@ namespace TradeApp.Business.Services
         {
             var existingTag = _context.Tags.Find(dto.Id);
 
-            var (jFilter, jLogin) = GetTagAsJson(dto);
+            var (jFilter, jIncludedLogin, jExcludedLogin) = GetTagAsJson(dto);
 
             existingTag.Name = dto.Name;
             existingTag.Key = jFilter;
-            existingTag.Logins = jLogin;
+            existingTag.IncludedLogins = jIncludedLogin;
+            existingTag.ExcludedLogins = jExcludedLogin;
 
             _context.Tags.Update(existingTag);
             _context.SaveChanges();
@@ -261,29 +262,43 @@ namespace TradeApp.Business.Services
                 Id = tag.Id,
                 TagFilter = JsonConvert.DeserializeObject<TagFilterDto>(tag.Key)
             };
-
-            dto.TagFilter.Logins = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(tag.Logins);
-
+            dto.TagFilter.IncludedLogins = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(tag.IncludedLogins);
+            dto.TagFilter.ExcludedLogins = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(tag.ExcludedLogins);
+            
             return dto;
         }
 
-        private (string tagFilterJson, string tagLoginsJson) GetTagAsJson(TagDto dto)
+        private (string tagFilterJson, string tagIncludedLoginsJson, string tagExcludedLoginsJson) GetTagAsJson(TagDto dto)
         {
-            var filter = dto.TagFilter;
-            var logins = dto.TagFilter.Logins;
+            var filter = new TagFilterDto();//dto.TagFilter;
+            var includedLogins = dto.TagFilter.IncludedLogins;
+            var excludedLogins = dto.TagFilter.ExcludedLogins;
 
-            filter.Logins = new Dictionary<int, List<int>>();
+            filter.IncludedLogins = new Dictionary<int, List<int>>();
+            filter.ExcludedLogins = new Dictionary<int, List<int>>();
+            filter.TagIds = dto.TagFilter.TagIds;
+            filter.XIds = dto.TagFilter.XIds;
+            filter.Groups = dto.TagFilter.Groups;
+            filter.OperatorByCalculation = dto.TagFilter.OperatorByCalculation;
+            filter.RegulationId = dto.TagFilter.RegulationId;
+            filter.ServerIds = dto.TagFilter.ServerIds;
 
             var jFilter = JsonConvert.SerializeObject(filter);
 
-            var jLogins = string.Empty;
+            var jIncludedLogins = string.Empty;
+            var jExcludedLogins = string.Empty;
 
-            if (logins.Any())
+            if (includedLogins.Any())
             {
-                jLogins = JsonConvert.SerializeObject(logins);
+                jIncludedLogins = JsonConvert.SerializeObject(includedLogins);
             }
 
-            return (jFilter, jLogins);
+            if (excludedLogins.Any())
+            {
+                jExcludedLogins = JsonConvert.SerializeObject(excludedLogins);
+            }
+
+            return (jFilter, jIncludedLogins, jExcludedLogins);
         }
 
         public int CreateUserDashboardWidgetFilter(int userId, WidgetFilterDto widgetFilterDto)
@@ -317,8 +332,6 @@ namespace TradeApp.Business.Services
                 var redisKey = existingUserDashboardWidget.Widget.Type.ToString();
                 if (!_redisDb.HashGetAll(redisKey).FirstOrDefault(r => r.Name == str).Value.HasValue)
                     _redisDb.WriteAndUpdate(redisKey, str, 0);//todo
-
-                continue;
 
                 var existingUserDashboardWidgetFilter = _context.UserDashboardWidgetFilter.FirstOrDefault(d =>
                     d.FilterId == filterId && d.UserDashboardWidgetId == existingUserDashboardWidget.Id);

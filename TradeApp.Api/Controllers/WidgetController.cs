@@ -9,7 +9,7 @@ namespace TradeApp.Api.Controllers
     [ApiController]
     public class WidgetController : ControllerBase
     {
-        private const int UserId = 0;
+        private const int UserId = 1;
 
         private readonly IWidgetService _widgetService;
 
@@ -85,7 +85,7 @@ namespace TradeApp.Api.Controllers
 
         #region Filtering Operation
 
-
+        
         // POST: api/Widget/Filter
         [HttpPost("Filter")]
         public ActionResult<int> PostFilter([FromBody] WidgetFilterDto widgetFilterDto)
@@ -93,7 +93,7 @@ namespace TradeApp.Api.Controllers
             return Ok(_widgetService.CreateUserDashboardWidgetFilter(UserId, widgetFilterDto));
         }
 
-
+       
         // GET: api/Widget/Filter
         [HttpGet("Filter")]
         public ActionResult<int> GetFilter(int userDashboardWidgetId)

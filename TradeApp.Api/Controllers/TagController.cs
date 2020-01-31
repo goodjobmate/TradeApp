@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using TradeApp.Business.Services.Interfaces;
 using TradeApp.Business.WidgetModels;
 using TradeApp.Data.Contexts;
-using TradeApp.Data.Models.BaseMetaDbModels;
 using TradeApp.Data.Models.TradeDbModels;
 
 namespace TradeApp.Api.Controllers
