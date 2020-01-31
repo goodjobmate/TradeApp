@@ -16,10 +16,11 @@ namespace TradeApp.Data.Models.TradeDbModels
         public List<UserDashboardWidgetFilter> Filters { get; set; }
 
 
-
+        //todo:use fluent api
         [ForeignKey("WidgetId")]
         public Widget Widget { get; set; }
 
+        //todo:use fluent api
         [ForeignKey("UserDashboardId")]
         public UserDashboard UserDashboard { get; set; }
     }
